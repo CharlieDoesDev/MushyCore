@@ -222,9 +222,13 @@ function init() {
   camera.position.set(0, 1.5, 4);
   camera.lookAt(cameraPivot.position);
 
-  createWorld();
-  addBetterLighting();
-  addParticles();
+  // Initialize a few chunks around the player
+  const [pcx, pcz] = getChunkCoords(0, 0);
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      spawnChunk(pcx + dx, pcz + dz);
+    }
+  }
 
   window.addEventListener("resize", onWindowResize);
   document.addEventListener("keydown", onKeyDown);
@@ -380,9 +384,24 @@ function addBetterLighting() {
 // Infinite procedural world with chunk loading
 const CHUNK_SIZE = 16;
 const RENDER_DISTANCE = 2; // in chunks
-let loadedChunks = new Map(); // key: 'x_z', value: {objects:[], mushrooms:[]}
+let loadedChunks = new Map(); // key: 'x_z', value: {objects:[], mushrooms:[], terrain:[]}
+let perlin = {
+  // Simple perlin noise implementation
+  noise: function (x, z) {
+    return (
+      Math.sin(x * 0.25) * Math.cos(z * 0.3) * 0.5 +
+      Math.sin(x * 0.05 + z * 0.1) * 0.5
+    );
+  },
+};
 
-function chunkKey(cx, cz) { return `${cx}_${cz}`; }
+function getTerrainHeight(x, z) {
+  return Math.floor(perlin.noise(x, z) * 2) * 0.5; // Quantize to 0.5 unit steps
+}
+
+function chunkKey(cx, cz) {
+  return `${cx}_${cz}`;
+}
 
 function getChunkCoords(x, z) {
   return [Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)];
@@ -391,6 +410,25 @@ function getChunkCoords(x, z) {
 function spawnChunk(cx, cz) {
   const objects = [];
   const mushrooms = [];
+  const terrain = [];
+
+  // Calculate base height for this chunk
+  const baseHeight = getTerrainHeight(cx * CHUNK_SIZE, cz * CHUNK_SIZE);
+
+  // Create terrain blocks
+  const terrainGeo = new THREE.BoxGeometry(CHUNK_SIZE, 1, CHUNK_SIZE);
+  const terrainMat = new THREE.MeshStandardMaterial({ color: 0x4caf50 });
+  const block = new THREE.Mesh(terrainGeo, terrainMat);
+  block.position.set(
+    cx * CHUNK_SIZE + CHUNK_SIZE / 2 - 0.5,
+    baseHeight - 0.5, // -0.5 to make top at baseHeight
+    cz * CHUNK_SIZE + CHUNK_SIZE / 2 - 0.5
+  );
+  block.receiveShadow = true;
+  scene.add(block);
+  terrain.push(block);
+  colliders.push(block);
+
   // Obstacles
   for (let i = 0; i < 8; i++) {
     const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
@@ -398,7 +436,7 @@ function spawnChunk(cx, cz) {
     const box = new THREE.Mesh(geo, mat);
     box.position.set(
       cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
-      0.35,
+      baseHeight + 0.35,
       cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
     );
     scene.add(box);
@@ -411,7 +449,11 @@ function spawnChunk(cx, cz) {
       new THREE.CylinderGeometry(0.12, 0.18, 1, 12),
       new THREE.MeshStandardMaterial({ color: 0x8d5524 })
     );
-    trunk.position.set(cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE, 0.5, cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE);
+    trunk.position.set(
+      cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
+      baseHeight + 0.5,
+      cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
+    );
     scene.add(trunk);
     objects.push(trunk);
     const leaves = new THREE.Mesh(
@@ -428,12 +470,12 @@ function spawnChunk(cx, cz) {
     const typeIndex = Math.floor(Math.random() * MUSHROOM_TYPES.length);
     const pos = new THREE.Vector3(
       cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
-      0.5,
+      baseHeight + 0.5,
       cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
     );
-    spawnMushroom(typeIndex, pos, scene, mushrooms);
+    spawnMushroom(typeIndex, pos, scene, worldMushrooms);
   }
-  loadedChunks.set(chunkKey(cx, cz), {objects, mushrooms});
+  loadedChunks.set(chunkKey(cx, cz), { objects, mushrooms, terrain });
 }
 
 function unloadChunk(cx, cz) {
@@ -447,16 +489,32 @@ function unloadChunk(cx, cz) {
   }
   for (const mush of chunk.mushrooms) {
     scene.remove(mush);
+    const idx = worldMushrooms.indexOf(mush);
+    if (idx !== -1) worldMushrooms.splice(idx, 1);
+  }
+  for (const terrain of chunk.terrain) {
+    scene.remove(terrain);
+    const idx = colliders.indexOf(terrain);
+    if (idx !== -1) colliders.splice(idx, 1);
   }
   loadedChunks.delete(key);
 }
 
 function updateChunks() {
   const [pcx, pcz] = getChunkCoords(mushroom.position.x, mushroom.position.z);
+
+  // Get current chunk baseHeight for player position update
+  const currChunkKey = chunkKey(pcx, pcz);
+  if (loadedChunks.has(currChunkKey)) {
+    const baseHeight = getTerrainHeight(pcx * CHUNK_SIZE, pcz * CHUNK_SIZE);
+    playerGroundHeight = baseHeight + 0.5; // Keep player on ground
+  }
+
   // Load nearby chunks
   for (let dx = -RENDER_DISTANCE; dx <= RENDER_DISTANCE; dx++) {
     for (let dz = -RENDER_DISTANCE; dz <= RENDER_DISTANCE; dz++) {
-      const cx = pcx + dx, cz = pcz + dz;
+      const cx = pcx + dx,
+        cz = pcz + dz;
       if (!loadedChunks.has(chunkKey(cx, cz))) {
         spawnChunk(cx, cz);
       }
@@ -464,9 +522,86 @@ function updateChunks() {
   }
   // Unload far chunks
   for (const key of Array.from(loadedChunks.keys())) {
-    const [cx, cz] = key.split('_').map(Number);
-    if (Math.abs(cx - pcx) > RENDER_DISTANCE || Math.abs(cz - pcz) > RENDER_DISTANCE) {
+    const [cx, cz] = key.split("_").map(Number);
+    if (
+      Math.abs(cx - pcx) > RENDER_DISTANCE ||
+      Math.abs(cz - pcz) > RENDER_DISTANCE
+    ) {
       unloadChunk(cx, cz);
+    }
+  }
+}
+
+// Global ground height for player
+let playerGroundHeight = 0.5;
+
+function init() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x222233);
+
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  );
+  camera.position.set(0, 2, 5);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Lighting and particles
+  addBetterLighting();
+  addParticles();
+
+  // Mushroom player
+  mushroom = createMushroom();
+  mushroom.position.y = playerGroundHeight;
+  scene.add(mushroom);
+
+  // Camera pivot for third person
+  cameraPivot = new THREE.Object3D();
+  cameraTarget = new THREE.Object3D();
+  scene.add(cameraPivot);
+  cameraPivot.add(camera);
+  camera.position.set(0, 1.5, 4);
+  camera.lookAt(cameraPivot.position);
+
+  // Initialize a few chunks around the player
+  const [pcx, pcz] = getChunkCoords(0, 0);
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      spawnChunk(pcx + dx, pcz + dz);
+    }
+  }
+
+  window.addEventListener("resize", onWindowResize);
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
+  document.addEventListener("mousedown", onMouseDown);
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
+  document.addEventListener("dblclick", goFullScreen);
+}
+
+// Fix mushroom collision detection
+function checkMushroomCrush(player) {
+  for (const mush of worldMushrooms) {
+    if (mush.userData.crushed) continue;
+    const b1 = new THREE.Box3().setFromObject(player);
+    const b2 = new THREE.Box3().setFromObject(mush);
+    if (
+      b1.intersectsBox(b2) &&
+      player.position.y > mush.position.y + 0.3 &&
+      velocity < 0
+    ) {
+      mush.userData.crushed = true;
+      mush.visible = false;
+      const typeIndex = mush.userData.typeIndex;
+      if (typeIndex !== undefined) {
+        MUSHROOM_TYPES[typeIndex].effect(playerStats);
+      }
     }
   }
 }
@@ -489,7 +624,7 @@ function animate() {
   }
   // Bouncing logic
   let onGround = false;
-  if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
+  if (isBouncing && Math.abs(mushroom.position.y - playerGroundHeight) < 0.01) {
     velocity =
       (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost) *
       mushroom.position.y *
@@ -500,8 +635,8 @@ function animate() {
   velocity += gravity;
   mushroom.position.y += velocity;
   // Collision with ground
-  if (mushroom.position.y < 0.5) {
-    mushroom.position.y = 0.5;
+  if (mushroom.position.y < playerGroundHeight) {
+    mushroom.position.y = playerGroundHeight;
     velocity = 0;
     onGround = true;
   }
@@ -512,10 +647,7 @@ function animate() {
   }
   // Check for crushing world mushrooms
   mushroom.velocity = velocity;
-  checkMushroomCrush(mushroom, worldMushrooms, (typeIndex) => {
-    MUSHROOM_TYPES[typeIndex].effect(playerStats);
-    // Optionally show a message or effect here
-  });
+  checkMushroomCrush(mushroom);
   updateMushroomMovement();
   updateCamera();
   jiggleMushroom(mushroom, 1 / 60);

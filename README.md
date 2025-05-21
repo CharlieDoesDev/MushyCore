@@ -1,15 +1,22 @@
 # Mushy Bounce
 
-**Version:** 1.0.3
+**Version:** 1.0.4
 
-A simple Three.js game where you play as a mushroom that bounces and hops around a 3D world.
+A simple Three.js game where you play as a mushroom that bounces and hops around an infinite procedural 3D world.
 
 ## How to Play
 
 - **Move:** WASD or Arrow keys
-- **Bounce:** Hold <kbd>Space</kbd>
+- **Bounce:** Hold <kbd>Space</kbd> to charge jump power, release to jump
 - **Look Around:** Drag mouse
 - **Full Screen:** Double-click the game
+
+## Features
+
+- Infinite procedurally generated terrain
+- Collectible mushrooms that give power-ups
+- Charged jumps and mushroom flips
+- Third-person camera
 
 ## How to Run
 

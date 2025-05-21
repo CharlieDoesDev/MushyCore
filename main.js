@@ -21,7 +21,7 @@ let playerGroundHeight = 0.5;
 let worldMushrooms = [];
 
 // Display version in UI
-const VERSION = "1.0.0";
+const VERSION = "1.0.5";
 window.addEventListener("DOMContentLoaded", () => {
   const v = document.getElementById("version");
   if (v) v.textContent = `Version: ${VERSION}`;

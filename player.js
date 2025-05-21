@@ -36,6 +36,14 @@ export function createMushroom() {
   return group;
 }
 
+export function updateMushroomMovement() {
+  // ...existing code from main.js...
+}
+
+export function checkMushroomCrush(player) {
+  // ...existing code from main.js...
+}
+
 export function jiggleMushroom(mushroom, delta) {
   mushroom.userData.jiggleTime += delta;
   let scaleY =

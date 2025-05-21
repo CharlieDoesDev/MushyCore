@@ -129,6 +129,13 @@ function init() {
   document.addEventListener("dblclick", goFullScreen);
 }
 
+// Display version in UI
+const VERSION = '1.0.0';
+window.addEventListener('DOMContentLoaded', () => {
+  const v = document.getElementById('version');
+  if (v) v.textContent = `Version: ${VERSION}`;
+});
+
 function goFullScreen() {
   if (document.fullscreenElement) {
     document.exitFullscreen();

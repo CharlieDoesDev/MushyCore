@@ -36,15 +36,15 @@ function createMushroom() {
   return group;
 }
 
-export function updateMushroomMovement() {
+function updateMushroomMovement() {
   // ...existing code from main.js...
 }
 
-export function checkMushroomCrush(player) {
+function checkMushroomCrush(player) {
   // ...existing code from main.js...
 }
 
-export function jiggleMushroom(mushroom, delta) {
+function jiggleMushroom(mushroom, delta) {
   mushroom.userData.jiggleTime += delta;
   let scaleY =
     1 +
@@ -55,7 +55,7 @@ export function jiggleMushroom(mushroom, delta) {
   mushroom.userData.jiggleAmount *= 0.92;
 }
 
-export function triggerJiggle(mushroom, amount = 0.18) {
+function triggerJiggle(mushroom, amount = 0.18) {
   mushroom.userData.jiggleAmount = Math.max(
     mushroom.userData.jiggleAmount,
     amount

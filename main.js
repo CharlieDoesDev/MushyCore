@@ -276,7 +276,11 @@ let isJumping = false;
 
 function onKeyDown(e) {
   keys[e.code] = true;
-  if (e.code === "Space" && !isJumping) {
+  // Fix jump height to be independent of mushroom's y position
+  if (
+    e.code === "Space" &&
+    Math.abs(mushroom.position.y - playerGroundHeight) < 0.01
+  ) {
     isBouncing = true;
     isJumping = true; // Set the flag to prevent repeated jumps
   }
@@ -440,10 +444,9 @@ function spawnChunk(cx, cz) {
   terrain.push(block);
   colliders.push(block);
 
-  // Trees - much larger with random sizes and position checking
+  // Trees - spawn at the correct height
   const treePositions = [];
   for (let i = 0; i < 4; i++) {
-    // Try to find a valid position
     let attempts = 0;
     let validPosition = false;
     let x, z;
@@ -458,7 +461,7 @@ function spawnChunk(cx, cz) {
         const dx = pos.x - x;
         const dz = pos.z - z;
         const distSq = dx * dx + dz * dz;
-        if (distSq < 150) {
+        if (distSq < MIN_TREE_SPACING) {
           validPosition = false;
           break;
         }
@@ -466,51 +469,40 @@ function spawnChunk(cx, cz) {
       attempts++;
     }
 
-    // If we couldn't find a valid position, skip this tree
     if (!validPosition) continue;
 
-    // Add position to our tracking array
     treePositions.push({ x, z });
 
-    // Randomize tree size (5-10x larger)
-    const sizeScale = 5 + Math.random() * 5;
-    const heightScale = 0.8 + Math.random() * 0.4; // Varies the height ratio
+    const treeHeight = getTerrainHeight(x, z); // Get height for tree position
 
-    // Tree trunk - 10x taller and wider
     const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(
-        0.3 * sizeScale,
-        0.4 * sizeScale,
-        10 * sizeScale * heightScale,
-        12
-      ),
+      new THREE.CylinderGeometry(0.3, 0.4, 10, 12),
       new THREE.MeshStandardMaterial({ color: 0x8d5524 })
     );
-    trunk.position.set(x, baseHeight + 5 * sizeScale * heightScale, z);
+    trunk.position.set(x, treeHeight + 5, z);
     scene.add(trunk);
     objects.push(trunk);
 
-    // Tree leaves - much bigger
     const leaves = new THREE.Mesh(
-      new THREE.SphereGeometry(2 * sizeScale, 16, 16),
+      new THREE.SphereGeometry(2, 16, 16),
       new THREE.MeshStandardMaterial({ color: 0x388e3c })
     );
-    leaves.position.copy(trunk.position);
-    leaves.position.y += 5 * sizeScale * heightScale;
+    leaves.position.set(x, treeHeight + 10, z);
     scene.add(leaves);
     objects.push(leaves);
   }
 
-  // Special mushrooms
+  // Special mushrooms - spawn at the correct height
   for (let i = 0; i < 3; i++) {
     const typeIndex = Math.floor(Math.random() * MUSHROOM_TYPES.length);
-    const pos = new THREE.Vector3(
-      cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
-      baseHeight + 0.5,
-      cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
-    );
+    const x = cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE;
+    const z = cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE;
+    const mushroomHeight = getTerrainHeight(x, z);
+
+    const pos = new THREE.Vector3(x, mushroomHeight + 0.5, z);
     spawnMushroom(typeIndex, pos, scene, worldMushrooms);
   }
+
   loadedChunks.set(chunkKey(cx, cz), { objects, mushrooms, terrain });
 }
 

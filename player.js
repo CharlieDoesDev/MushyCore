@@ -36,12 +36,117 @@ function createMushroom() {
   return group;
 }
 
-function updateMushroomMovement() {
-  // ...existing code from main.js...
+function updateMushroomMovement(
+  mushroom,
+  keys,
+  velocity,
+  playerGroundHeight,
+  moveSpeed,
+  colliders,
+  worldMushrooms,
+  playerStats
+) {
+  // Handle movement, jumping, and bouncing logic
+  // Movement (WASD or Arrow keys)
+  let moveX = 0,
+    moveZ = 0;
+  if (keys["KeyW"] || keys["ArrowUp"]) moveZ -= 1;
+  if (keys["KeyS"] || keys["ArrowDown"]) moveZ += 1;
+  if (keys["KeyA"] || keys["ArrowLeft"]) moveX -= 1;
+  if (keys["KeyD"] || keys["ArrowRight"]) moveX += 1;
+  if (moveX !== 0 || moveZ !== 0) {
+    const len = Math.sqrt(moveX * moveX + moveZ * moveZ);
+    moveX /= len;
+    moveZ /= len;
+    mushroom.position.x += moveX * moveSpeed;
+    mushroom.position.z += moveZ * moveSpeed;
+  }
+
+  // Jumping and bouncing
+  if (!mushroom.userData.velocity) mushroom.userData.velocity = 0;
+  if (!mushroom.userData.isOnGround) mushroom.userData.isOnGround = false;
+  if (!mushroom.userData.jumpCharge) mushroom.userData.jumpCharge = 0;
+  if (!mushroom.userData.isFlipping) mushroom.userData.isFlipping = false;
+  if (!mushroom.userData.flipTime) mushroom.userData.flipTime = 0;
+
+  // Jump charge logic
+  if (
+    keys["Space"] &&
+    Math.abs(mushroom.position.y - playerGroundHeight) < 0.01
+  ) {
+    mushroom.userData.jumpCharge = Math.min(
+      mushroom.userData.jumpCharge + 1 / 60,
+      0.5
+    );
+  }
+
+  // Flipping animation
+  if (mushroom.userData.isFlipping) {
+    mushroom.userData.flipTime += 1 / 60;
+    mushroom.rotation.x = Math.PI * 2 * (mushroom.userData.flipTime / 0.5);
+    if (mushroom.userData.flipTime >= 0.5) {
+      mushroom.userData.isFlipping = false;
+      mushroom.rotation.x = 0;
+    }
+  }
+
+  // Bouncing logic
+  let onGround = false;
+  if (
+    keys["Space"] &&
+    Math.abs(mushroom.position.y - playerGroundHeight) < 0.01
+  ) {
+    mushroom.userData.velocity =
+      (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost) *
+      mushroom.position.y *
+      0.6;
+    onGround = false;
+  }
+  mushroom.userData.velocity += gravity;
+  mushroom.position.y += mushroom.userData.velocity;
+
+  // Collision with ground
+  if (mushroom.position.y < playerGroundHeight) {
+    mushroom.position.y = playerGroundHeight;
+    mushroom.userData.velocity = 0;
+    onGround = true;
+    if (!mushroom.userData.isOnGround) {
+      triggerJiggle(mushroom);
+      mushroom.userData.isOnGround = true;
+    }
+  } else {
+    mushroom.userData.isOnGround = false;
+  }
+
+  // Collision with objects
+  if (window.checkCollisions && checkCollisions(mushroom, colliders)) {
+    mushroom.userData.velocity = Math.min(mushroom.userData.velocity, 0);
+    onGround = true;
+  }
+
+  // Check for crushing world mushrooms
+  mushroom.velocity = mushroom.userData.velocity;
+  checkMushroomCrush(mushroom, worldMushrooms, playerStats);
 }
 
-function checkMushroomCrush(player) {
-  // ...existing code from main.js...
+function checkMushroomCrush(player, worldMushrooms, playerStats) {
+  for (const mush of worldMushrooms) {
+    if (mush.userData.crushed) continue;
+    const b1 = new THREE.Box3().setFromObject(player);
+    const b2 = new THREE.Box3().setFromObject(mush);
+    if (
+      b1.intersectsBox(b2) &&
+      player.position.y > mush.position.y + 0.3 &&
+      player.velocity < 0
+    ) {
+      mush.userData.crushed = true;
+      mush.visible = false;
+      const typeIndex = mush.userData.typeIndex;
+      if (typeIndex !== undefined && window.MUSHROOM_TYPES) {
+        window.MUSHROOM_TYPES[typeIndex].effect(playerStats);
+      }
+    }
+  }
 }
 
 function jiggleMushroom(mushroom, delta) {

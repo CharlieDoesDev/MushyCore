@@ -152,26 +152,21 @@ function onKeyUp(e) {
   if (e.code === "Space") isBouncing = false;
 }
 
-let isMouseDown = false,
-  lastMouseX = 0,
-  lastMouseY = 0,
-  yaw = 0,
-  pitch = 0;
+let isMouseDown = false, lastMouseX = 0, lastMouseY = 0, yaw = 0, pitch = 0;
 function onMouseDown(e) {
+  if (e.button !== 0) return;
   isMouseDown = true;
   lastMouseX = e.clientX;
   lastMouseY = e.clientY;
 }
-function onMouseUp() {
-  isMouseDown = false;
-}
+function onMouseUp() { isMouseDown = false; }
 function onMouseMove(e) {
   if (!isMouseDown) return;
   const dx = e.clientX - lastMouseX;
   const dy = e.clientY - lastMouseY;
-  yaw -= dx * turnSpeed * 0.5;
-  pitch -= dy * turnSpeed * 0.2;
-  pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, pitch));
+  yaw -= dx * 0.01; // Sensitivity
+  pitch -= dy * 0.01;
+  pitch = Math.max(-Math.PI/4, Math.min(Math.PI/4, pitch));
   lastMouseX = e.clientX;
   lastMouseY = e.clientY;
 }
@@ -198,11 +193,13 @@ function updateMushroomMovement() {
 }
 
 function updateCamera() {
-  cameraPivot.position.copy(mushroom.position);
-  cameraPivot.position.y += 0.7;
-  camera.position.set(0, 1.5 + pitch, 4);
-  cameraPivot.rotation.y = yaw;
-  camera.lookAt(cameraPivot.position);
+  // Third person camera rotation around mushroom
+  const radius = 4;
+  const camX = mushroom.position.x + radius * Math.sin(yaw) * Math.cos(pitch);
+  const camY = mushroom.position.y + 1.5 + radius * Math.sin(pitch);
+  const camZ = mushroom.position.z + radius * Math.cos(yaw) * Math.cos(pitch);
+  camera.position.set(camX, camY, camZ);
+  camera.lookAt(mushroom.position.x, mushroom.position.y + 0.7, mushroom.position.z);
 }
 
 function animate() {

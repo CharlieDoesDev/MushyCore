@@ -458,7 +458,7 @@ function spawnChunk(cx, cz) {
         const dx = pos.x - x;
         const dz = pos.z - z;
         const distSq = dx * dx + dz * dz;
-        if (distSq < MIN_TREE_SPACING) {
+        if (distSq < 15) {
           validPosition = false;
           break;
         }

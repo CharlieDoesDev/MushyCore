@@ -104,10 +104,10 @@ export function goFullScreen() {
 }
 
 // Expose functions globally
+window.setupEventListeners = setupEventListeners;
 window.onKeyDown = onKeyDown;
 window.onKeyUp = onKeyUp;
 window.onMouseDown = onMouseDown;
 window.onMouseMove = onMouseMove;
 window.onMouseUp = onMouseUp;
 window.goFullScreen = goFullScreen;
-window.setupEventListeners = setupEventListeners;

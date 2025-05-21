@@ -1,9 +1,7 @@
 // collisions.js
 // Handles collision detection and response
 
-import * as THREE from "./node_modules/three/build/three.module.js";
-
-export function checkCollisions(mesh, colliders) {
+function checkCollisions(mesh, colliders) {
   const pos = mesh.position;
   let collided = false;
   for (const c of colliders) {
@@ -19,7 +17,7 @@ export function checkCollisions(mesh, colliders) {
   return collided;
 }
 
-export function checkMushroomCrush(player, worldMushrooms, playerStats) {
+function checkMushroomCrush(player, worldMushrooms, playerStats) {
   for (const mush of worldMushrooms) {
     if (mush.userData.crushed) continue;
     const b1 = new THREE.Box3().setFromObject(player);
@@ -38,3 +36,6 @@ export function checkMushroomCrush(player, worldMushrooms, playerStats) {
     }
   }
 }
+
+window.checkCollisions = checkCollisions;
+window.checkMushroomCrush = checkMushroomCrush;

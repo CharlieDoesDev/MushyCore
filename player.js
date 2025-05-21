@@ -63,6 +63,7 @@ export function triggerJiggle(mushroom, amount = 0.18) {
 }
 
 // Expose functions globally
+window.createMushroom = createMushroom;
 window.updateMushroomMovement = updateMushroomMovement;
 window.checkMushroomCrush = checkMushroomCrush;
 window.jiggleMushroom = jiggleMushroom;

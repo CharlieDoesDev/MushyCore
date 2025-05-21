@@ -5,7 +5,7 @@ const CHUNK_SIZE = 16;
 const RENDER_DISTANCE = 2;
 let loadedChunks = new Map();
 
-export function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
+function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   const objects = [];
   const mushrooms = [];
   const terrain = [];
@@ -28,7 +28,7 @@ export function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   loadedChunks.set(chunkKey(cx, cz), { objects, mushrooms, terrain });
 }
 
-export function unloadChunk(cx, cz, scene, colliders, worldMushrooms) {
+function unloadChunk(cx, cz, scene, colliders, worldMushrooms) {
   const key = chunkKey(cx, cz);
   const chunk = loadedChunks.get(key);
   if (!chunk) return;
@@ -50,7 +50,7 @@ export function unloadChunk(cx, cz, scene, colliders, worldMushrooms) {
   loadedChunks.delete(key);
 }
 
-export function updateChunks(mushroom, scene, colliders, worldMushrooms) {
+function updateChunks(mushroom, scene, colliders, worldMushrooms) {
   const [pcx, pcz] = getChunkCoords(mushroom.position.x, mushroom.position.z);
 
   for (let dx = -RENDER_DISTANCE; dx <= RENDER_DISTANCE; dx++) {
@@ -75,15 +75,15 @@ export function updateChunks(mushroom, scene, colliders, worldMushrooms) {
 }
 
 // Move chunk management functions here
-export function chunkKey(cx, cz) {
+function chunkKey(cx, cz) {
   return `${cx}_${cz}`;
 }
 
-export function getChunkCoords(x, z) {
+function getChunkCoords(x, z) {
   return [Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)];
 }
 
-export function getTerrainHeight(x, z) {
+function getTerrainHeight(x, z) {
   // Placeholder function for getting terrain height
   return Math.sin(x * 0.1) * Math.cos(z * 0.1) * 10 + 10;
 }

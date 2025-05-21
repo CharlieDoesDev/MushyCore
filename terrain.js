@@ -7,19 +7,19 @@ const MIN_TREE_SPACING = 25; // Minimum distance squared between trees
 
 let loadedChunks = new Map(); // key: 'x_z', value: {objects:[], mushrooms:[], terrain:[]}
 
-export function getTerrainHeight(x, z) {
+function getTerrainHeight(x, z) {
   return Math.floor(perlin.noise(x, z) * 2) * 0.5; // Quantize to 0.5 unit steps
 }
 
-export function chunkKey(cx, cz) {
+function chunkKey(cx, cz) {
   return `${cx}_${cz}`;
 }
 
-export function getChunkCoords(x, z) {
+function getChunkCoords(x, z) {
   return [Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)];
 }
 
-export function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
+function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   const objects = [];
   const mushrooms = [];
   const terrain = [];
@@ -103,7 +103,7 @@ export function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   loadedChunks.set(chunkKey(cx, cz), { objects, mushrooms, terrain });
 }
 
-export function unloadChunk(cx, cz, scene, colliders, worldMushrooms) {
+function unloadChunk(cx, cz, scene, colliders, worldMushrooms) {
   const key = chunkKey(cx, cz);
   const chunk = loadedChunks.get(key);
   if (!chunk) return;
@@ -125,7 +125,7 @@ export function unloadChunk(cx, cz, scene, colliders, worldMushrooms) {
   loadedChunks.delete(key);
 }
 
-export function updateChunks(mushroom, scene, colliders, worldMushrooms) {
+function updateChunks(mushroom, scene, colliders, worldMushrooms) {
   const [pcx, pcz] = getChunkCoords(mushroom.position.x, mushroom.position.z);
 
   // Load nearby chunks
@@ -149,3 +149,11 @@ export function updateChunks(mushroom, scene, colliders, worldMushrooms) {
     }
   }
 }
+
+// Expose functions globally
+window.getTerrainHeight = getTerrainHeight;
+window.chunkKey = chunkKey;
+window.getChunkCoords = getChunkCoords;
+window.spawnChunk = spawnChunk;
+window.unloadChunk = unloadChunk;
+window.updateChunks = updateChunks;

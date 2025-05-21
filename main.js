@@ -4,8 +4,7 @@ let scene,
   camera,
   renderer,
   mushroom,
-  velocity = 0,
-  isBouncing = false;
+  velocity = 0;
 let direction = new THREE.Vector3();
 let keys = {};
 let cameraPivot, cameraTarget;
@@ -257,13 +256,34 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+let jumpCharge = 0;
+const maxJumpCharge = 1.5; // seconds
+const minJump = 0.6;
+const flipThreshold = 1.0; // seconds
+let isFlipping = false;
+let flipTime = 0;
+
 function onKeyDown(e) {
   keys[e.code] = true;
   if (e.code === "Space") isBouncing = true;
 }
 function onKeyUp(e) {
   keys[e.code] = false;
-  if (e.code === "Space") isBouncing = false;
+  if (e.code === "Space") {
+    isBouncing = false;
+    if (Math.abs(mushroom.position.y - 0.5) < 0.01) {
+      // Calculate jump power
+      let charge = Math.min(jumpCharge, maxJumpCharge);
+      let jumpPower = minJump + (charge / maxJumpCharge) * (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost);
+      velocity = jumpPower * mushroom.position.y * 0.6;
+      triggerJiggle(mushroom);
+      if (charge >= flipThreshold) {
+        isFlipping = true;
+        flipTime = 0;
+      }
+    }
+    jumpCharge = 0;
+  }
 }
 
 let isMouseDown = false,
@@ -356,6 +376,19 @@ function addBetterLighting() {
 
 function animate() {
   requestAnimationFrame(animate);
+  // Jump charge logic
+  if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
+    jumpCharge = Math.min(jumpCharge + 1/60, maxJumpCharge);
+  }
+  // Flipping animation
+  if (isFlipping) {
+    flipTime += 1/60;
+    mushroom.rotation.x = Math.PI * 2 * (flipTime / 0.5); // 1 full flip in 0.5s
+    if (flipTime >= 0.5) {
+      isFlipping = false;
+      mushroom.rotation.x = 0;
+    }
+  }
   // Bouncing logic
   let onGround = false;
   if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {

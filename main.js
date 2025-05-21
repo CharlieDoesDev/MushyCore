@@ -98,7 +98,7 @@ function animate() {
   updateChunks(mushroom, scene, colliders, worldMushrooms);
 
   // Jump charge logic
-  if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
+  if (keys["Space"] && Math.abs(mushroom.position.y - 0.5) < 0.01) {
     jumpCharge = Math.min(jumpCharge + 1 / 60, maxJumpCharge);
   }
 
@@ -114,7 +114,10 @@ function animate() {
 
   // Bouncing logic
   let onGround = false;
-  if (isBouncing && Math.abs(mushroom.position.y - playerGroundHeight) < 0.01) {
+  if (
+    keys["Space"] &&
+    Math.abs(mushroom.position.y - playerGroundHeight) < 0.01
+  ) {
     velocity =
       (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost) *
       mushroom.position.y *

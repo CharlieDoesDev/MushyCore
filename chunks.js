@@ -94,9 +94,9 @@ function getTerrainHeight(x, z) {
   const base = 2;
   const height = Math.floor(
     Math.sin(x * scale) * Math.cos(z * scale) * 4 +
-    Math.sin(z * scale * 0.7) * 2 +
-    Math.cos(x * scale * 0.5) * 1.5 +
-    base
+      Math.sin(z * scale * 0.7) * 2 +
+      Math.cos(x * scale * 0.5) * 1.5 +
+      base
   );
   return height;
 }

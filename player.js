@@ -46,7 +46,7 @@ function updateMushroomMovement(
   worldMushrooms,
   playerStats
 ) {
-  // Movement (WASD or Arrow keys)
+  // Movement relative to camera/player orientation
   let moveX = 0,
     moveZ = 0;
   if (keys["KeyW"] || keys["ArrowUp"]) moveZ -= 1;
@@ -54,11 +54,18 @@ function updateMushroomMovement(
   if (keys["KeyA"] || keys["ArrowLeft"]) moveX -= 1;
   if (keys["KeyD"] || keys["ArrowRight"]) moveX += 1;
   if (moveX !== 0 || moveZ !== 0) {
+    // Get yaw from global (set by mouse movement)
+    const yaw = window.yaw || 0;
+    // Rotate movement vector by yaw
     const len = Math.sqrt(moveX * moveX + moveZ * moveZ);
     moveX /= len;
     moveZ /= len;
-    mushroom.position.x += moveX * (moveSpeed + (playerStats?.speedBoost || 0));
-    mushroom.position.z += moveZ * (moveSpeed + (playerStats?.speedBoost || 0));
+    const cos = Math.cos(yaw);
+    const sin = Math.sin(yaw);
+    const relX = moveX * cos - moveZ * sin;
+    const relZ = moveX * sin + moveZ * cos;
+    mushroom.position.x += relX * (moveSpeed + (playerStats?.speedBoost || 0));
+    mushroom.position.z += relZ * (moveSpeed + (playerStats?.speedBoost || 0));
   }
 
   // Ensure velocity is tracked on the mushroom object

@@ -13,13 +13,17 @@ function setupCamera() {
 }
 
 function updateCamera(camera, mushroom, yaw, pitch) {
-  // Example third-person camera logic
   if (!camera || !mushroom) return;
+  // Camera offset behind the player, relative to yaw/pitch
   const offset = new THREE.Vector3(0, 1.5, 4);
   const euler = new THREE.Euler(pitch || 0, yaw || 0, 0, "YXZ");
   offset.applyEuler(euler);
   camera.position.copy(mushroom.position).add(offset);
-  camera.lookAt(mushroom.position);
+  camera.lookAt(
+    mushroom.position.x,
+    mushroom.position.y + 1,
+    mushroom.position.z
+  );
 }
 
 // Move camera-related functions here

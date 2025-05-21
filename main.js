@@ -448,7 +448,7 @@ function spawnChunk(cx, cz) {
     let validPosition = false;
     let x, z;
 
-    while (!validPosition && attempts < 10) {
+    while (!validPosition && attempts < 30) {
       x = cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE;
       z = cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE;
 
@@ -458,7 +458,7 @@ function spawnChunk(cx, cz) {
         const dx = pos.x - x;
         const dz = pos.z - z;
         const distSq = dx * dx + dz * dz;
-        if (distSq < 15) {
+        if (distSq < 150) {
           validPosition = false;
           break;
         }

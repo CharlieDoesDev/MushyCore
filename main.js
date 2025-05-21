@@ -113,26 +113,8 @@ function init() {
   window.addEventListener("dblclick", goFullScreen);
 }
 
-// Fix mushroom collision detection
-function checkMushroomCrush(player) {
-  for (const mush of worldMushrooms) {
-    if (mush.userData.crushed) continue;
-    const b1 = new THREE.Box3().setFromObject(player);
-    const b2 = new THREE.Box3().setFromObject(mush);
-    if (
-      b1.intersectsBox(b2) &&
-      player.position.y > mush.position.y + 0.3 &&
-      velocity < 0
-    ) {
-      mush.userData.crushed = true;
-      mush.visible = false;
-      const typeIndex = mush.userData.typeIndex;
-      if (typeIndex !== undefined) {
-        MUSHROOM_TYPES[typeIndex].effect(playerStats);
-      }
-    }
-  }
-}
+// Removed duplicate definition of checkMushroomCrush
+// The function is already imported from player.js
 
 function animate() {
   requestAnimationFrame(animate);

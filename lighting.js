@@ -17,6 +17,19 @@ function addBetterLighting(scene) {
     pt.position.set(Math.cos(i * 2) * 6, 2 + i, Math.sin(i * 2) * 6);
     scene.add(pt);
   }
+
+  // Added addBetterLighting function if missing
+  function addBetterLighting() {
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 10, 7.5);
+    scene.add(directionalLight);
+  }
+
+  // Ensure globally accessible
+  window.addBetterLighting = addBetterLighting;
 }
 
 // Expose functions globally

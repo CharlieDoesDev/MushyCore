@@ -110,3 +110,4 @@ window.onMouseDown = onMouseDown;
 window.onMouseMove = onMouseMove;
 window.onMouseUp = onMouseUp;
 window.goFullScreen = goFullScreen;
+window.setupEventListeners = setupEventListeners;

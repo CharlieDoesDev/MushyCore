@@ -12,6 +12,7 @@ const gravity = -0.02;
 const bounceStrength = 1.2; // Increased jump height
 const moveSpeed = 0.07;
 const colliders = [];
+const MIN_TREE_SPACING = 25; // Minimum distance squared between trees
 
 // Particle system for ambiance
 let particles;
@@ -698,4 +699,3 @@ init();
 animate();
 
 // Define minimum tree spacing constant
-const MIN_TREE_SPACING = 25; // Minimum distance squared between trees

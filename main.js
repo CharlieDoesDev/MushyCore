@@ -696,3 +696,6 @@ function animate() {
 
 init();
 animate();
+
+// Define minimum tree spacing constant
+const MIN_TREE_SPACING = 25; // Minimum distance squared between trees

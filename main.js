@@ -104,6 +104,9 @@ window.checkCollisions =
   };
 window.MUSHROOM_TYPES = window.MUSHROOM_TYPES || [];
 
+// Player stats for power-ups and upgrades
+let playerStats = { jumpBoost: 0, speedBoost: 0, bounceBoost: 0 };
+
 function animate() {
   requestAnimationFrame(animate);
   updateChunks(mushroom, scene, colliders, worldMushrooms);

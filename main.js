@@ -5,7 +5,7 @@ let direction = new THREE.Vector3();
 let keys = {};
 let cameraPivot, cameraTarget;
 const gravity = -0.02;
-const bounceStrength = 0.6;
+const bounceStrength = 1.2; // Increased jump height
 const moveSpeed = 0.07;
 const colliders = [];
 
@@ -58,25 +58,24 @@ function animateParticles() {
 function createMushroom() {
   const group = new THREE.Group();
   // Cap
-  const capGeometry = new THREE.SphereGeometry(
-    0.5,
-    32,
-    32,
-    0,
-    Math.PI * 2,
-    0,
-    Math.PI / 1.2
-  );
+  const capGeometry = new THREE.SphereGeometry(0.5, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.2);
   const capMaterial = new THREE.MeshStandardMaterial({ color: 0xd72660 });
   const cap = new THREE.Mesh(capGeometry, capMaterial);
-  cap.position.y = 0.5;
+  cap.position.y = 0.62;
   group.add(cap);
   // Stem
-  const stemGeometry = new THREE.CylinderGeometry(0.18, 0.25, 0.6, 24);
+  const stemGeometry = new THREE.CylinderGeometry(0.22, 0.28, 0.5, 32, 1, true);
   const stemMaterial = new THREE.MeshStandardMaterial({ color: 0xf7e8a4 });
   const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-  stem.position.y = 0.2;
+  stem.position.y = 0.25;
   group.add(stem);
+  // Add a bottom ring for the stem
+  const ringGeometry = new THREE.TorusGeometry(0.22, 0.06, 16, 32);
+  const ringMaterial = new THREE.MeshStandardMaterial({ color: 0xe0c97f });
+  const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+  ring.position.y = 0.01;
+  ring.rotation.x = Math.PI / 2;
+  group.add(ring);
   // For jiggle
   group.userData.jiggleTime = 0;
   group.userData.jiggleAmount = 0;

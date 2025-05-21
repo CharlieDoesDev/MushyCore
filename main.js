@@ -50,7 +50,7 @@ function init() {
   addFog();
 
   // Add lighting
-  addBetterLighting();
+  addBetterLighting(scene);
 
   // Add particles
   addParticles();

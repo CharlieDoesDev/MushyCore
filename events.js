@@ -9,7 +9,7 @@ let lastMouseY = 0;
 let yaw = 0;
 let pitch = 0;
 
-export function setupEventListeners(
+function setupEventListeners(
   mushroom,
   camera,
   renderer,

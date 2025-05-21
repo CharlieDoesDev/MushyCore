@@ -17,6 +17,9 @@ const MIN_TREE_SPACING = 25; // Minimum distance squared between trees
 // Global ground height for player
 let playerGroundHeight = 0.5;
 
+// Initialize the world mushrooms array
+let worldMushrooms = [];
+
 // Display version in UI
 const VERSION = "1.0.0";
 window.addEventListener("DOMContentLoaded", () => {

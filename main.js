@@ -377,8 +377,103 @@ function addBetterLighting() {
   }
 }
 
+// Infinite procedural world with chunk loading
+const CHUNK_SIZE = 16;
+const RENDER_DISTANCE = 2; // in chunks
+let loadedChunks = new Map(); // key: 'x_z', value: {objects:[], mushrooms:[]}
+
+function chunkKey(cx, cz) { return `${cx}_${cz}`; }
+
+function getChunkCoords(x, z) {
+  return [Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)];
+}
+
+function spawnChunk(cx, cz) {
+  const objects = [];
+  const mushrooms = [];
+  // Obstacles
+  for (let i = 0; i < 8; i++) {
+    const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x8ecae6 });
+    const box = new THREE.Mesh(geo, mat);
+    box.position.set(
+      cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
+      0.35,
+      cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
+    );
+    scene.add(box);
+    objects.push(box);
+    colliders.push(box);
+  }
+  // Trees
+  for (let i = 0; i < 4; i++) {
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.18, 1, 12),
+      new THREE.MeshStandardMaterial({ color: 0x8d5524 })
+    );
+    trunk.position.set(cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE, 0.5, cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE);
+    scene.add(trunk);
+    objects.push(trunk);
+    const leaves = new THREE.Mesh(
+      new THREE.SphereGeometry(0.6, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x388e3c })
+    );
+    leaves.position.copy(trunk.position);
+    leaves.position.y += 0.7;
+    scene.add(leaves);
+    objects.push(leaves);
+  }
+  // Special mushrooms
+  for (let i = 0; i < 2; i++) {
+    const typeIndex = Math.floor(Math.random() * MUSHROOM_TYPES.length);
+    const pos = new THREE.Vector3(
+      cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
+      0.5,
+      cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
+    );
+    spawnMushroom(typeIndex, pos, scene, mushrooms);
+  }
+  loadedChunks.set(chunkKey(cx, cz), {objects, mushrooms});
+}
+
+function unloadChunk(cx, cz) {
+  const key = chunkKey(cx, cz);
+  const chunk = loadedChunks.get(key);
+  if (!chunk) return;
+  for (const obj of chunk.objects) {
+    scene.remove(obj);
+    const idx = colliders.indexOf(obj);
+    if (idx !== -1) colliders.splice(idx, 1);
+  }
+  for (const mush of chunk.mushrooms) {
+    scene.remove(mush);
+  }
+  loadedChunks.delete(key);
+}
+
+function updateChunks() {
+  const [pcx, pcz] = getChunkCoords(mushroom.position.x, mushroom.position.z);
+  // Load nearby chunks
+  for (let dx = -RENDER_DISTANCE; dx <= RENDER_DISTANCE; dx++) {
+    for (let dz = -RENDER_DISTANCE; dz <= RENDER_DISTANCE; dz++) {
+      const cx = pcx + dx, cz = pcz + dz;
+      if (!loadedChunks.has(chunkKey(cx, cz))) {
+        spawnChunk(cx, cz);
+      }
+    }
+  }
+  // Unload far chunks
+  for (const key of Array.from(loadedChunks.keys())) {
+    const [cx, cz] = key.split('_').map(Number);
+    if (Math.abs(cx - pcx) > RENDER_DISTANCE || Math.abs(cz - pcz) > RENDER_DISTANCE) {
+      unloadChunk(cx, cz);
+    }
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
+  updateChunks();
   // Jump charge logic
   if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
     jumpCharge = Math.min(jumpCharge + 1 / 60, maxJumpCharge);

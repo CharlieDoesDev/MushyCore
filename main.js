@@ -282,11 +282,13 @@ function onKeyUp(e) {
     if (Math.abs(mushroom.position.y - playerGroundHeight) < 0.01) {
       // Calculate jump power
       let charge = Math.min(jumpCharge, maxJumpCharge);
-      let jumpPower =
+      let jumpPower = Math.max(
+        MIN_JUMP_POWER,
         minJump +
-        (charge / maxJumpCharge) *
-          (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost);
-      velocity = jumpPower; // Remove dependency on mushroom's position
+          (charge / maxJumpCharge) *
+            (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost)
+      );
+      velocity = jumpPower;
       triggerJiggle(mushroom);
       if (charge >= flipThreshold) {
         isFlipping = true;
@@ -451,8 +453,7 @@ function spawnChunk(cx, cz) {
         const dx = pos.x - x;
         const dz = pos.z - z;
         const distSq = dx * dx + dz * dz;
-        if (distSq < 16) {
-          // Minimum 4 units apart
+        if (distSq < MIN_TREE_SPACING) {
           validPosition = false;
           break;
         }

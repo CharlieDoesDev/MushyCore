@@ -95,6 +95,9 @@ function createMushroom() {
   return group;
 }
 
+let playerStats = { jumpBoost: 0, speedBoost: 0, bounceBoost: 0 };
+let worldMushrooms = [];
+
 function createWorld() {
   // Add some obstacles and scenery
   for (let i = 0; i < 10; i++) {
@@ -128,6 +131,16 @@ function createWorld() {
     leaves.position.copy(trunk.position);
     leaves.position.y += 0.7;
     scene.add(leaves);
+  }
+  // Add special mushrooms
+  for (let i = 0; i < 6; i++) {
+    const typeIndex = Math.floor(Math.random() * MUSHROOM_TYPES.length);
+    const pos = new THREE.Vector3(
+      (Math.random() - 0.5) * 14,
+      0.5,
+      (Math.random() - 0.5) * 14
+    );
+    spawnMushroom(typeIndex, pos, scene, worldMushrooms);
   }
 }
 
@@ -346,7 +359,7 @@ function animate() {
   // Bouncing logic
   let onGround = false;
   if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
-    velocity = bounceStrength * mushroom.position.y * 0.6;
+    velocity = (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost) * mushroom.position.y * 0.6;
     triggerJiggle(mushroom);
     onGround = false;
   }
@@ -363,9 +376,15 @@ function animate() {
     velocity = Math.min(velocity, 0);
     onGround = true;
   }
+  // Check for crushing world mushrooms
+  mushroom.velocity = velocity;
+  checkMushroomCrush(mushroom, worldMushrooms, (typeIndex) => {
+    MUSHROOM_TYPES[typeIndex].effect(playerStats);
+    // Optionally show a message or effect here
+  });
   updateMushroomMovement();
   updateCamera();
-  jiggleMushroom(mushroom, 1 / 60);
+  jiggleMushroom(mushroom, 1/60);
   animateParticles();
   renderer.render(scene, camera);
 }

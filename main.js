@@ -97,17 +97,7 @@ function animate() {
   requestAnimationFrame(animate);
   updateChunks(mushroom, scene, colliders, worldMushrooms);
 
-  // Flipping animation
-  if (isFlipping) {
-    flipTime += 1 / 60;
-    mushroom.rotation.x = Math.PI * 2 * (flipTime / 0.5); // 1 full flip in 0.5s
-    if (flipTime >= 0.5) {
-      isFlipping = false;
-      mushroom.rotation.x = 0;
-    }
-  }
-
-  // Player movement, jumping, and bouncing logic handled in player.js
+  // Flipping animation is now handled in updateMushroomMovement (player.js)
   updateMushroomMovement(
     mushroom,
     keys,

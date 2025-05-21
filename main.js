@@ -183,7 +183,7 @@ function init() {
   scene.background = new THREE.Color(0x222233);
 
   // Add fog for atmosphere and depth perception
-  scene.fog = new THREE.FogExp2(0x222233, 0.02);
+  scene.fog = new THREE.FogExp2(0x222233, 0.01); // Less dense fog to see trees better
 
   camera = new THREE.PerspectiveCamera(
     75,
@@ -432,44 +432,70 @@ function spawnChunk(cx, cz) {
   terrain.push(block);
   colliders.push(block);
 
-  // Obstacles
-  for (let i = 0; i < 8; i++) {
-    const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x8ecae6 });
-    const box = new THREE.Mesh(geo, mat);
-    box.position.set(
-      cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
-      baseHeight + 0.35,
-      cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
-    );
-    scene.add(box);
-    objects.push(box);
-    colliders.push(box);
-  }
-  // Trees
+  // Trees - much larger with random sizes and position checking
+  const treePositions = [];
   for (let i = 0; i < 4; i++) {
+    // Try to find a valid position
+    let attempts = 0;
+    let validPosition = false;
+    let x, z;
+
+    while (!validPosition && attempts < 10) {
+      x = cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE;
+      z = cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE;
+
+      // Check distance to other trees
+      validPosition = true;
+      for (const pos of treePositions) {
+        const dx = pos.x - x;
+        const dz = pos.z - z;
+        const distSq = dx * dx + dz * dz;
+        if (distSq < 16) {
+          // Minimum 4 units apart
+          validPosition = false;
+          break;
+        }
+      }
+      attempts++;
+    }
+
+    // If we couldn't find a valid position, skip this tree
+    if (!validPosition) continue;
+
+    // Add position to our tracking array
+    treePositions.push({ x, z });
+
+    // Randomize tree size (5-10x larger)
+    const sizeScale = 5 + Math.random() * 5;
+    const heightScale = 0.8 + Math.random() * 0.4; // Varies the height ratio
+
+    // Tree trunk - 10x taller and wider
     const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.12, 0.18, 1, 12),
+      new THREE.CylinderGeometry(
+        0.3 * sizeScale,
+        0.4 * sizeScale,
+        10 * sizeScale * heightScale,
+        12
+      ),
       new THREE.MeshStandardMaterial({ color: 0x8d5524 })
     );
-    trunk.position.set(
-      cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
-      baseHeight + 0.5,
-      cz * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE
-    );
+    trunk.position.set(x, baseHeight + 5 * sizeScale * heightScale, z);
     scene.add(trunk);
     objects.push(trunk);
+
+    // Tree leaves - much bigger
     const leaves = new THREE.Mesh(
-      new THREE.SphereGeometry(0.6, 16, 16),
+      new THREE.SphereGeometry(2 * sizeScale, 16, 16),
       new THREE.MeshStandardMaterial({ color: 0x388e3c })
     );
     leaves.position.copy(trunk.position);
-    leaves.position.y += 0.7;
+    leaves.position.y += 5 * sizeScale * heightScale;
     scene.add(leaves);
     objects.push(leaves);
   }
+
   // Special mushrooms
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 3; i++) {
     const typeIndex = Math.floor(Math.random() * MUSHROOM_TYPES.length);
     const pos = new THREE.Vector3(
       cx * CHUNK_SIZE + (Math.random() - 0.5) * CHUNK_SIZE,
@@ -543,7 +569,7 @@ function init() {
   scene.background = new THREE.Color(0x222233);
 
   // Add fog for atmosphere and depth perception
-  scene.fog = new THREE.FogExp2(0x222233, 0.02);
+  scene.fog = new THREE.FogExp2(0x222233, 0.01); // Less dense fog to see trees better
 
   camera = new THREE.PerspectiveCamera(
     75,

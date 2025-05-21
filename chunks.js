@@ -54,6 +54,7 @@ function unloadChunk(cx, cz, scene, colliders, worldMushrooms) {
 }
 
 function updateChunks(mushroom, scene, colliders, worldMushrooms) {
+  if (!mushroom || !mushroom.position) return; // Prevent errors if mushroom is not yet created
   const [pcx, pcz] = getChunkCoords(mushroom.position.x, mushroom.position.z);
 
   for (let dx = -RENDER_DISTANCE; dx <= RENDER_DISTANCE; dx++) {

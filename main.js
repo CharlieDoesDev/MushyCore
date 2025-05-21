@@ -14,6 +14,9 @@ const bounceStrength = 0.6;
 const moveSpeed = 0.07;
 const turnSpeed = 0.03;
 
+// Use MushroomEntity for the player
+let mushroomEntity;
+
 function createMushroom() {
   const group = new THREE.Group();
   // Cap
@@ -37,59 +40,6 @@ function createMushroom() {
   stem.position.y = 0.2;
   group.add(stem);
   return group;
-}
-
-function createWorld() {
-  // Add some obstacles and scenery
-  for (let i = 0; i < 10; i++) {
-    const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x8ecae6 });
-    const box = new THREE.Mesh(geo, mat);
-    box.position.set(
-      (Math.random() - 0.5) * 12,
-      0.35,
-      (Math.random() - 0.5) * 12
-    );
-    scene.add(box);
-  }
-  // Add some trees
-  for (let i = 0; i < 6; i++) {
-    const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.12, 0.18, 1, 12),
-      new THREE.MeshStandardMaterial({ color: 0x8d5524 })
-    );
-    trunk.position.set(
-      (Math.random() - 0.5) * 14,
-      0.5,
-      (Math.random() - 0.5) * 14
-    );
-    scene.add(trunk);
-    const leaves = new THREE.Mesh(
-      new THREE.SphereGeometry(0.6, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0x388e3c })
-    );
-    leaves.position.copy(trunk.position);
-    leaves.position.y += 0.7;
-    scene.add(leaves);
-  }
-}
-
-function addBetterLighting() {
-  // Sunlight
-  const sun = new THREE.DirectionalLight(0xfff7e0, 1.1);
-  sun.position.set(5, 10, 5);
-  sun.castShadow = true;
-  scene.add(sun);
-  // Soft fill
-  const fill = new THREE.HemisphereLight(0x88ccee, 0x334422, 0.7);
-  scene.add(fill);
-  // Subtle point lights for color
-  for (let i = 0; i < 3; i++) {
-    const color = [0xffb347, 0x7ec850, 0x7ec8e3][i];
-    const pt = new THREE.PointLight(color, 0.3, 10);
-    pt.position.set(Math.cos(i * 2) * 6, 2 + i, Math.sin(i * 2) * 6);
-    scene.add(pt);
-  }
 }
 
 // Particle system for ambiance
@@ -170,9 +120,10 @@ function init() {
   scene.add(ground);
 
   // Mushroom
-  mushroom = createMushroom();
-  mushroom.position.y = 0.5;
-  scene.add(mushroom);
+  const mushMesh = createMushroom();
+  mushMesh.position.y = 0.5;
+  mushroomEntity = new MushroomEntity(mushMesh);
+  scene.add(mushMesh);
 
   // Camera pivot for third person
   cameraPivot = new THREE.Object3D();
@@ -295,20 +246,109 @@ function updateCamera() {
   );
 }
 
+let worldEntities = [];
+let colliders = [];
+function createWorld() {
+  // Add some obstacles and scenery
+  for (let i = 0; i < 10; i++) {
+    const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x8ecae6 });
+    const box = new THREE.Mesh(geo, mat);
+    box.position.set(
+      (Math.random() - 0.5) * 12,
+      0.35,
+      (Math.random() - 0.5) * 12
+    );
+    scene.add(box);
+    colliders.push(box);
+    worldEntities.push(new Entity(box));
+  }
+  // Add some trees
+  for (let i = 0; i < 6; i++) {
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.18, 1, 12),
+      new THREE.MeshStandardMaterial({ color: 0x8d5524 })
+    );
+    trunk.position.set(
+      (Math.random() - 0.5) * 14,
+      0.5,
+      (Math.random() - 0.5) * 14
+    );
+    scene.add(trunk);
+    const leaves = new THREE.Mesh(
+      new THREE.SphereGeometry(0.6, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x388e3c })
+    );
+    leaves.position.copy(trunk.position);
+    leaves.position.y += 0.7;
+    scene.add(leaves);
+  }
+}
+
+function addBetterLighting() {
+  // Sunlight
+  const sun = new THREE.DirectionalLight(0xfff7e0, 1.1);
+  sun.position.set(5, 10, 5);
+  sun.castShadow = true;
+  scene.add(sun);
+  // Soft fill
+  const fill = new THREE.HemisphereLight(0x88ccee, 0x334422, 0.7);
+  scene.add(fill);
+  // Subtle point lights for color
+  for (let i = 0; i < 3; i++) {
+    const color = [0xffb347, 0x7ec850, 0x7ec8e3][i];
+    const pt = new THREE.PointLight(color, 0.3, 10);
+    pt.position.set(Math.cos(i * 2) * 6, 2 + i, Math.sin(i * 2) * 6);
+    scene.add(pt);
+  }
+}
+
+function checkCollisions(entity) {
+  // Simple AABB collision for all colliders
+  const mesh = entity.mesh;
+  const pos = mesh.position;
+  let collided = false;
+  for (const c of colliders) {
+    if (c === mesh) continue;
+    const b1 = new THREE.Box3().setFromObject(mesh);
+    const b2 = new THREE.Box3().setFromObject(c);
+    if (b1.intersectsBox(b2)) {
+      collided = true;
+      // Push out of collision (simple)
+      const dir = pos.clone().sub(c.position).setY(0).normalize();
+      pos.add(dir.multiplyScalar(0.12));
+    }
+  }
+  return collided;
+}
+
 function animate() {
   requestAnimationFrame(animate);
   // Bouncing logic
-  if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
-    velocity = bounceStrength;
+  if (isBouncing && mushroomEntity.onGround) {
+    velocity = Math.max(
+      velocity,
+      bounceStrength * mushroomEntity.mesh.position.y * 0.6
+    );
+    mushroomEntity.triggerJiggle();
+    mushroomEntity.onGround = false;
   }
   velocity += gravity;
-  mushroom.position.y += velocity;
-  if (mushroom.position.y < 0.5) {
-    mushroom.position.y = 0.5;
+  mushroomEntity.mesh.position.y += velocity;
+  // Collision with ground
+  if (mushroomEntity.mesh.position.y < 0.5) {
+    mushroomEntity.mesh.position.y = 0.5;
     velocity = 0;
+    mushroomEntity.onGround = true;
+  }
+  // Collision with objects
+  if (checkCollisions(mushroomEntity)) {
+    velocity = Math.min(velocity, 0);
+    mushroomEntity.onGround = true;
   }
   updateMushroomMovement();
   updateCamera();
+  mushroomEntity.update(1 / 60);
   animateParticles();
   renderer.render(scene, camera);
 }

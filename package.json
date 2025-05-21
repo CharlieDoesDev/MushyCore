@@ -10,7 +10,12 @@
     "three": "^0.158.0"
   },
   "devDependencies": {},
-  "keywords": ["three.js", "mushroom", "game", "bounce"],
+  "keywords": [
+    "three.js",
+    "mushroom",
+    "game",
+    "bounce"
+  ],
   "author": "",
   "license": "MIT"
 }

@@ -1,20 +1,16 @@
 # Mushy Bounce
 
-A simple Three.js app where you play as a mushroom that bounces around by holding the space bar.
+A simple Three.js game where you play as a mushroom that bounces and hops around a 3D world.
+
+## How to Play
+
+- **Move:** WASD or Arrow keys
+- **Bounce:** Hold <kbd>Space</kbd>
+- **Look Around:** Drag mouse
+- **Full Screen:** Double-click the game
 
 ## How to Run
 
-1. Install dependencies:
-   ```powershell
-   npm install
-   ```
-2. Start the local server:
-   ```powershell
-   npm start
-   ```
-3. Open your browser to [http://localhost:3000](http://localhost:3000) (or the URL shown in the terminal).
+Just open `index.html` in your browser. No installation or server needed.
 
-## Controls
-- Hold <kbd>Space</kbd> to bounce the mushroom.
-
-Enjoy!
+Enjoy exploring the world as a bouncy mushroom!

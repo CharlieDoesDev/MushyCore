@@ -53,7 +53,7 @@ function init() {
   addBetterLighting(scene);
 
   // Add particles
-  addParticles();
+  addParticles(scene);
 
   // Create the player
   mushroom = createMushroom();

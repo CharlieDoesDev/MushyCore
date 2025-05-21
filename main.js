@@ -152,21 +152,27 @@ function onKeyUp(e) {
   if (e.code === "Space") isBouncing = false;
 }
 
-let isMouseDown = false, lastMouseX = 0, lastMouseY = 0, yaw = 0, pitch = 0;
+let isMouseDown = false,
+  lastMouseX = 0,
+  lastMouseY = 0,
+  yaw = 0,
+  pitch = 0;
 function onMouseDown(e) {
   if (e.button !== 0) return;
   isMouseDown = true;
   lastMouseX = e.clientX;
   lastMouseY = e.clientY;
 }
-function onMouseUp() { isMouseDown = false; }
+function onMouseUp() {
+  isMouseDown = false;
+}
 function onMouseMove(e) {
   if (!isMouseDown) return;
   const dx = e.clientX - lastMouseX;
   const dy = e.clientY - lastMouseY;
   yaw -= dx * 0.01; // Sensitivity
-  pitch -= dy * 0.01;
-  pitch = Math.max(-Math.PI/4, Math.min(Math.PI/4, pitch));
+  pitch += dy * 0.01; // Fix: vertical not inverted
+  pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, pitch));
   lastMouseX = e.clientX;
   lastMouseY = e.clientY;
 }
@@ -179,7 +185,7 @@ function updateMushroomMovement() {
   if (keys["KeyD"] || keys["ArrowRight"]) direction.x += 1;
   if (direction.lengthSq() > 0) {
     direction.normalize();
-    // Rotate direction by camera yaw
+    // Movement relative to camera yaw
     const angle = yaw;
     const sin = Math.sin(angle),
       cos = Math.cos(angle);
@@ -199,7 +205,11 @@ function updateCamera() {
   const camY = mushroom.position.y + 1.5 + radius * Math.sin(pitch);
   const camZ = mushroom.position.z + radius * Math.cos(yaw) * Math.cos(pitch);
   camera.position.set(camX, camY, camZ);
-  camera.lookAt(mushroom.position.x, mushroom.position.y + 0.7, mushroom.position.z);
+  camera.lookAt(
+    mushroom.position.x,
+    mushroom.position.y + 0.7,
+    mushroom.position.z
+  );
 }
 
 function animate() {

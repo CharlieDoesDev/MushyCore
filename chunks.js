@@ -1,7 +1,7 @@
 // chunks.js
 // Handles chunk management for the infinite procedural world
 
-import * as THREE from "three";
+import * as THREE from "./node_modules/three/build/three.module.js";
 
 const CHUNK_SIZE = 16;
 const RENDER_DISTANCE = 2;

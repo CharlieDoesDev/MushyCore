@@ -1,7 +1,7 @@
 // collisions.js
 // Handles collision detection and response
 
-import * as THREE from "three";
+import * as THREE from "./node_modules/three/build/three.module.js";
 
 export function checkCollisions(mesh, colliders) {
   const pos = mesh.position;

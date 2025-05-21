@@ -1,7 +1,7 @@
 // camera.js
 // Handles camera management and updates
 
-import * as THREE from "three";
+import * as THREE from "./node_modules/three/build/three.module.js";
 
 export function setupCamera() {
   const camera = new THREE.PerspectiveCamera(

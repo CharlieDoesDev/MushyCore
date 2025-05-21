@@ -74,6 +74,70 @@ function createWorld() {
   }
 }
 
+function addBetterLighting() {
+  // Sunlight
+  const sun = new THREE.DirectionalLight(0xfff7e0, 1.1);
+  sun.position.set(5, 10, 5);
+  sun.castShadow = true;
+  scene.add(sun);
+  // Soft fill
+  const fill = new THREE.HemisphereLight(0x88ccee, 0x334422, 0.7);
+  scene.add(fill);
+  // Subtle point lights for color
+  for (let i = 0; i < 3; i++) {
+    const color = [0xffb347, 0x7ec850, 0x7ec8e3][i];
+    const pt = new THREE.PointLight(color, 0.3, 10);
+    pt.position.set(Math.cos(i * 2) * 6, 2 + i, Math.sin(i * 2) * 6);
+    scene.add(pt);
+  }
+}
+
+// Particle system for ambiance
+let particles;
+function addParticles() {
+  const count = 120;
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    const x = (Math.random() - 0.5) * 18;
+    const y = 1.5 + Math.random() * 4;
+    const z = (Math.random() - 0.5) * 18;
+    positions.push(x, y, z);
+    const c = new THREE.Color().setHSL(
+      0.55 + Math.random() * 0.3,
+      0.7,
+      0.7 + Math.random() * 0.2
+    );
+    colors.push(c.r, c.g, c.b);
+  }
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3)
+  );
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  const material = new THREE.PointsMaterial({
+    size: 0.18,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.7,
+  });
+  particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+}
+
+function animateParticles() {
+  if (!particles) return;
+  const positions = particles.geometry.attributes.position;
+  for (let i = 0; i < positions.count; i++) {
+    let y = positions.getY(i);
+    y += Math.sin(Date.now() * 0.001 + i) * 0.003;
+    if (y > 6) y = 1.5;
+    positions.setY(i, y);
+  }
+  positions.needsUpdate = true;
+}
+
 function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x222233);
@@ -119,6 +183,8 @@ function init() {
   camera.lookAt(cameraPivot.position);
 
   createWorld();
+  addBetterLighting();
+  addParticles();
 
   window.addEventListener("resize", onWindowResize);
   document.addEventListener("keydown", onKeyDown);
@@ -186,8 +252,8 @@ function onMouseMove(e) {
 
 function updateMushroomMovement() {
   direction.set(0, 0, 0);
-  if (keys["KeyW"] || keys["ArrowUp"]) direction.z -= 1;
-  if (keys["KeyS"] || keys["ArrowDown"]) direction.z += 1;
+  if (keys["KeyW"] || keys["ArrowUp"]) direction.z += 1; // Flip sign
+  if (keys["KeyS"] || keys["ArrowDown"]) direction.z -= 1; // Flip sign
   if (keys["KeyA"] || keys["ArrowLeft"]) direction.x -= 1;
   if (keys["KeyD"] || keys["ArrowRight"]) direction.x += 1;
   if (direction.lengthSq() > 0) {
@@ -243,6 +309,7 @@ function animate() {
   }
   updateMushroomMovement();
   updateCamera();
+  animateParticles();
   renderer.render(scene, camera);
 }
 

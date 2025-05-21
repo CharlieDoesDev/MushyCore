@@ -185,16 +185,26 @@ function updateMushroomMovement() {
   if (keys["KeyD"] || keys["ArrowRight"]) direction.x += 1;
   if (direction.lengthSq() > 0) {
     direction.normalize();
-    // Movement relative to camera yaw
-    const angle = yaw;
-    const sin = Math.sin(angle),
-      cos = Math.cos(angle);
-    const dx = direction.x * cos - direction.z * sin;
-    const dz = direction.x * sin + direction.z * cos;
-    mushroom.position.x += dx * moveSpeed;
-    mushroom.position.z += dz * moveSpeed;
-    // Face movement direction
-    mushroom.rotation.y = Math.atan2(dx, dz);
+    // Use camera's world matrix to get forward/right vectors
+    const camMatrix = new THREE.Matrix4();
+    camMatrix.extractRotation(camera.matrixWorld);
+    const forward = new THREE.Vector3(0, 0, -1).applyMatrix4(camMatrix);
+    const right = new THREE.Vector3(1, 0, 0).applyMatrix4(camMatrix);
+    // Project onto XZ plane
+    forward.y = 0;
+    right.y = 0;
+    forward.normalize();
+    right.normalize();
+    // Combine directions
+    const move = new THREE.Vector3();
+    move.addScaledVector(forward, direction.z);
+    move.addScaledVector(right, direction.x);
+    if (move.lengthSq() > 0) {
+      move.normalize();
+      mushroom.position.addScaledVector(move, moveSpeed);
+      // Face movement direction
+      mushroom.rotation.y = Math.atan2(move.x, move.z);
+    }
   }
 }
 

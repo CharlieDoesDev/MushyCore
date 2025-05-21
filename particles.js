@@ -44,3 +44,7 @@ export function animateParticles(particles) {
   }
   positions.needsUpdate = true;
 }
+
+// Expose functions globally
+window.addParticles = addParticles;
+window.animateParticles = animateParticles;

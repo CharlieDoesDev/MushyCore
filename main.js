@@ -24,33 +24,6 @@ window.addEventListener("DOMContentLoaded", () => {
   if (v) v.textContent = `Version: ${VERSION}`;
 });
 
-// Import new modules
-import {
-  spawnChunk,
-  unloadChunk,
-  updateChunks,
-  chunkKey,
-  getChunkCoords,
-  getTerrainHeight,
-} from "./chunks.js";
-import {
-  updateMushroomMovement,
-  checkMushroomCrush,
-  jiggleMushroom,
-  triggerJiggle,
-} from "./player.js";
-import {
-  onKeyDown,
-  onKeyUp,
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
-  goFullScreen,
-} from "./events.js";
-import { updateCamera } from "./camera.js";
-import { addParticles, animateParticles } from "./particles.js";
-import { addBetterLighting } from "./lighting.js";
-
 function addFog() {
   // Add fog for atmosphere and depth perception
   scene.fog = new THREE.FogExp2(0x222233, 0.01); // Less dense fog to see trees better

@@ -18,3 +18,6 @@ export function addBetterLighting(scene) {
     scene.add(pt);
   }
 }
+
+// Expose functions globally
+window.addBetterLighting = addBetterLighting;

@@ -102,3 +102,11 @@ export function onMouseUp() {
 export function goFullScreen() {
   // ...existing code from main.js...
 }
+
+// Expose functions globally
+window.onKeyDown = onKeyDown;
+window.onKeyUp = onKeyUp;
+window.onMouseDown = onMouseDown;
+window.onMouseMove = onMouseMove;
+window.onMouseUp = onMouseUp;
+window.goFullScreen = goFullScreen;

@@ -31,3 +31,6 @@ export function updateCamera(camera, mushroom, yaw, pitch) {
 export function updateCamera() {
   // ...existing code from main.js...
 }
+
+// Expose functions globally
+window.updateCamera = updateCamera;

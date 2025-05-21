@@ -89,3 +89,11 @@ export function getTerrainHeight(x, z) {
   // Placeholder function for getting terrain height
   return Math.sin(x * 0.1) * Math.cos(z * 0.1) * 10 + 10;
 }
+
+// Expose functions globally
+window.spawnChunk = spawnChunk;
+window.unloadChunk = unloadChunk;
+window.updateChunks = updateChunks;
+window.chunkKey = chunkKey;
+window.getChunkCoords = getChunkCoords;
+window.getTerrainHeight = getTerrainHeight;

@@ -182,6 +182,9 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x222233);
 
+  // Add fog for atmosphere and depth perception
+  scene.fog = new THREE.FogExp2(0x222233, 0.02);
+
   camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -538,6 +541,9 @@ let playerGroundHeight = 0.5;
 function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x222233);
+
+  // Add fog for atmosphere and depth perception
+  scene.fog = new THREE.FogExp2(0x222233, 0.02);
 
   camera = new THREE.PerspectiveCamera(
     75,

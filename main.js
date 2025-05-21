@@ -93,6 +93,13 @@ function init() {
   window.addEventListener("dblclick", () => goFullScreen());
 }
 
+// Make sure these are available globally for player.js
+window.gravity = gravity;
+window.bounceStrength = bounceStrength;
+window.triggerJiggle = triggerJiggle;
+window.checkCollisions = checkCollisions;
+window.MUSHROOM_TYPES = window.MUSHROOM_TYPES || [];
+
 function animate() {
   requestAnimationFrame(animate);
   updateChunks(mushroom, scene, colliders, worldMushrooms);

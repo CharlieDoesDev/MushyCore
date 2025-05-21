@@ -2,19 +2,16 @@
 // Handles collision detection and response
 
 function checkCollisions(mesh, colliders) {
-  const pos = mesh.position;
-  let collided = false;
-  for (const c of colliders) {
-    if (c === mesh) continue;
-    const b1 = new THREE.Box3().setFromObject(mesh);
-    const b2 = new THREE.Box3().setFromObject(c);
-    if (b1.intersectsBox(b2)) {
-      collided = true;
-      const dir = pos.clone().sub(c.position).setY(0).normalize();
-      pos.add(dir.multiplyScalar(0.12));
+  if (!colliders) return false;
+  const meshBox = new THREE.Box3().setFromObject(mesh);
+  for (const collider of colliders) {
+    if (collider === mesh) continue;
+    const colliderBox = new THREE.Box3().setFromObject(collider);
+    if (meshBox.intersectsBox(colliderBox)) {
+      return true;
     }
   }
-  return collided;
+  return false;
 }
 
 function checkMushroomCrush(player, worldMushrooms, playerStats) {

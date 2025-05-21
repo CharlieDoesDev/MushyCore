@@ -80,27 +80,27 @@ function setupEventListeners(
 
 // Move event handling functions here
 function onKeyDown(e) {
-  // ...existing code from main.js...
+  keys[e.code] = true;
 }
 
 function onKeyUp(e) {
-  // ...existing code from main.js...
+  keys[e.code] = false;
 }
 
 function onMouseDown(e) {
-  // ...existing code from main.js...
+  // Implement mouse down logic if needed
 }
 
 function onMouseMove(e) {
-  // ...existing code from main.js...
+  // Implement mouse move logic if needed
 }
 
 function onMouseUp() {
-  // ...existing code from main.js...
+  // Implement mouse up logic if needed
 }
 
 function goFullScreen() {
-  // ...existing code from main.js...
+  if (document.body.requestFullscreen) document.body.requestFullscreen();
 }
 
 // Expose functions globally

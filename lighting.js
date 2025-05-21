@@ -2,6 +2,7 @@
 // Sets up and manages lighting in the scene
 
 function addBetterLighting(scene) {
+  if (!scene) return;
   // Sunlight
   const sun = new THREE.DirectionalLight(0xfff7e0, 1.1);
   sun.position.set(5, 10, 5);

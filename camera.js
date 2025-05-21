@@ -13,16 +13,13 @@ function setupCamera() {
 }
 
 function updateCamera(camera, mushroom, yaw, pitch) {
-  const radius = 4;
-  const camX = mushroom.position.x + radius * Math.sin(yaw) * Math.cos(pitch);
-  const camY = mushroom.position.y + 1.5 + radius * Math.sin(pitch);
-  const camZ = mushroom.position.z + radius * Math.cos(yaw) * Math.cos(pitch);
-  camera.position.set(camX, camY, camZ);
-  camera.lookAt(
-    mushroom.position.x,
-    mushroom.position.y + 0.7,
-    mushroom.position.z
-  );
+  // Example third-person camera logic
+  if (!camera || !mushroom) return;
+  const offset = new THREE.Vector3(0, 1.5, 4);
+  const euler = new THREE.Euler(pitch || 0, yaw || 0, 0, "YXZ");
+  offset.applyEuler(euler);
+  camera.position.copy(mushroom.position).add(offset);
+  camera.lookAt(mushroom.position);
 }
 
 // Move camera-related functions here

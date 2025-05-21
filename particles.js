@@ -2,6 +2,7 @@
 // Handles the particle system for ambiance
 
 function addParticles(scene) {
+  if (!scene) return;
   const count = 120;
   const geometry = new THREE.BufferGeometry();
   const positions = [];
@@ -31,9 +32,11 @@ function addParticles(scene) {
   });
   const particles = new THREE.Points(geometry, material);
   scene.add(particles);
+  window._particles = particles;
 }
 
-function animateParticles(particles) {
+function animateParticles(scene) {
+  const particles = window._particles;
   if (!particles) return;
   const positions = particles.geometry.attributes.position;
   for (let i = 0; i < positions.count; i++) {

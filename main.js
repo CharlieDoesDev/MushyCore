@@ -59,8 +59,11 @@ function init() {
   addParticles(scene);
 
   // Create the player
+  const startX = 0;
+  const startZ = 0;
+  const startY = getTerrainHeight(startX, startZ) + 1; // Place above terrain
   mushroom = createMushroom();
-  mushroom.position.y = playerGroundHeight;
+  mushroom.position.set(startX, startY, startZ);
   scene.add(mushroom);
 
   // Camera pivot for third person

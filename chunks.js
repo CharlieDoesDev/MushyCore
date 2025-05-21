@@ -10,20 +10,23 @@ function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   const mushrooms = [];
   const terrain = [];
 
-  const baseHeight = getTerrainHeight(cx * CHUNK_SIZE, cz * CHUNK_SIZE);
-
-  const terrainGeo = new THREE.BoxGeometry(CHUNK_SIZE, 1, CHUNK_SIZE);
-  const terrainMat = new THREE.MeshStandardMaterial({ color: 0x4caf50 });
-  const block = new THREE.Mesh(terrainGeo, terrainMat);
-  block.position.set(
-    cx * CHUNK_SIZE + CHUNK_SIZE / 2 - 0.5,
-    baseHeight - 0.5,
-    cz * CHUNK_SIZE + CHUNK_SIZE / 2 - 0.5
-  );
-  block.receiveShadow = true;
-  scene.add(block);
-  terrain.push(block);
-  colliders.push(block);
+  // Generate terrain blocks for this chunk
+  for (let x = 0; x < CHUNK_SIZE; x++) {
+    for (let z = 0; z < CHUNK_SIZE; z++) {
+      const wx = cx * CHUNK_SIZE + x;
+      const wz = cz * CHUNK_SIZE + z;
+      const h = getTerrainHeight(wx, wz);
+      const block = new THREE.Mesh(
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.MeshStandardMaterial({ color: 0x4caf50 })
+      );
+      block.position.set(wx, h - 0.5, wz);
+      block.receiveShadow = true;
+      scene.add(block);
+      terrain.push(block);
+      colliders.push(block);
+    }
+  }
 
   loadedChunks.set(chunkKey(cx, cz), { objects, mushrooms, terrain });
 }
@@ -84,8 +87,18 @@ function getChunkCoords(x, z) {
 }
 
 function getTerrainHeight(x, z) {
-  // Placeholder function for getting terrain height
-  return Math.sin(x * 0.1) * Math.cos(z * 0.1) * 10 + 10;
+  // Use Perlin/simplex noise for smooth, natural height variation
+  // For now, use a simple pseudo-random height function for demo
+  // Replace with a real noise function for better results
+  const scale = 0.12;
+  const base = 2;
+  const height = Math.floor(
+    Math.sin(x * scale) * Math.cos(z * scale) * 4 +
+    Math.sin(z * scale * 0.7) * 2 +
+    Math.cos(x * scale * 0.5) * 1.5 +
+    base
+  );
+  return height;
 }
 
 // Expose functions globally

@@ -4,23 +4,29 @@
 // Mushroom types
 const MUSHROOM_TYPES = [
   {
-    name: 'Red',
+    name: "Red",
     color: 0xd72660,
-    effect: (player) => { player.jumpBoost += 0.2; },
-    description: '+Jump Height'
+    effect: (player) => {
+      player.jumpBoost += 0.2;
+    },
+    description: "+Jump Height",
   },
   {
-    name: 'Blue',
+    name: "Blue",
     color: 0x3a86ff,
-    effect: (player) => { player.speedBoost += 0.03; },
-    description: '+Speed'
+    effect: (player) => {
+      player.speedBoost += 0.03;
+    },
+    description: "+Speed",
   },
   {
-    name: 'Green',
+    name: "Green",
     color: 0x43aa8b,
-    effect: (player) => { player.bounceBoost += 0.1; },
-    description: '+Bounce Power'
-  }
+    effect: (player) => {
+      player.bounceBoost += 0.1;
+    },
+    description: "+Bounce Power",
+  },
 ];
 
 // Spawns a mushroom of a given type at a position
@@ -28,7 +34,15 @@ function spawnMushroom(typeIndex, position, scene, worldMushrooms) {
   const type = MUSHROOM_TYPES[typeIndex];
   const group = new THREE.Group();
   // Cap
-  const capGeometry = new THREE.SphereGeometry(0.4, 24, 24, 0, Math.PI * 2, 0, Math.PI / 1.2);
+  const capGeometry = new THREE.SphereGeometry(
+    0.4,
+    24,
+    24,
+    0,
+    Math.PI * 2,
+    0,
+    Math.PI / 1.2
+  );
   const capMaterial = new THREE.MeshStandardMaterial({ color: type.color });
   const cap = new THREE.Mesh(capGeometry, capMaterial);
   cap.position.y = 0.5;
@@ -52,7 +66,11 @@ function checkMushroomCrush(player, mushrooms, onCrush) {
     if (mush.userData.crushed) continue;
     const b1 = new THREE.Box3().setFromObject(player);
     const b2 = new THREE.Box3().setFromObject(mush);
-    if (b1.intersectsBox(b2) && player.position.y > mush.position.y + 0.3 && player.velocity < 0) {
+    if (
+      b1.intersectsBox(b2) &&
+      player.position.y > mush.position.y + 0.3 &&
+      player.velocity < 0
+    ) {
       mush.userData.crushed = true;
       mush.visible = false;
       if (onCrush) onCrush(mush.userData.typeIndex);

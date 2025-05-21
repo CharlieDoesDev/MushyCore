@@ -1,6 +1,6 @@
 # Mushy Bounce
 
-**Version:** 1.0.2
+**Version:** 1.0.3
 
 A simple Three.js game where you play as a mushroom that bounces and hops around a 3D world.
 

@@ -274,7 +274,10 @@ function onKeyUp(e) {
     if (Math.abs(mushroom.position.y - 0.5) < 0.01) {
       // Calculate jump power
       let charge = Math.min(jumpCharge, maxJumpCharge);
-      let jumpPower = minJump + (charge / maxJumpCharge) * (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost);
+      let jumpPower =
+        minJump +
+        (charge / maxJumpCharge) *
+          (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost);
       velocity = jumpPower * mushroom.position.y * 0.6;
       triggerJiggle(mushroom);
       if (charge >= flipThreshold) {
@@ -378,11 +381,11 @@ function animate() {
   requestAnimationFrame(animate);
   // Jump charge logic
   if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
-    jumpCharge = Math.min(jumpCharge + 1/60, maxJumpCharge);
+    jumpCharge = Math.min(jumpCharge + 1 / 60, maxJumpCharge);
   }
   // Flipping animation
   if (isFlipping) {
-    flipTime += 1/60;
+    flipTime += 1 / 60;
     mushroom.rotation.x = Math.PI * 2 * (flipTime / 0.5); // 1 full flip in 0.5s
     if (flipTime >= 0.5) {
       isFlipping = false;
@@ -392,7 +395,10 @@ function animate() {
   // Bouncing logic
   let onGround = false;
   if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
-    velocity = (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost) * mushroom.position.y * 0.6;
+    velocity =
+      (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost) *
+      mushroom.position.y *
+      0.6;
     triggerJiggle(mushroom);
     onGround = false;
   }
@@ -417,7 +423,7 @@ function animate() {
   });
   updateMushroomMovement();
   updateCamera();
-  jiggleMushroom(mushroom, 1/60);
+  jiggleMushroom(mushroom, 1 / 60);
   animateParticles();
   renderer.render(scene, camera);
 }

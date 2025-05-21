@@ -61,7 +61,17 @@ function init() {
   // Create the player
   const startX = 0;
   const startZ = 0;
-  const startY = getTerrainHeight(startX, startZ) + 1; // Place above terrain
+  // Use raycasting to find the terrain height at the player's start position
+  const raycaster = new THREE.Raycaster();
+  raycaster.set(
+    new THREE.Vector3(startX, 100, startZ),
+    new THREE.Vector3(0, -1, 0)
+  );
+  const intersects = raycaster.intersectObjects(colliders, false);
+  let startY = 10;
+  if (intersects.length > 0) {
+    startY = intersects[0].point.y + 1; // Place player 1 unit above terrain
+  }
   mushroom = createMushroom();
   mushroom.position.set(startX, startY, startZ);
   scene.add(mushroom);

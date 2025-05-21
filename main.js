@@ -648,10 +648,12 @@ function checkMushroomCrush(player) {
 function animate() {
   requestAnimationFrame(animate);
   updateChunks();
+
   // Jump charge logic
   if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
     jumpCharge = Math.min(jumpCharge + 1 / 60, maxJumpCharge);
   }
+
   // Flipping animation
   if (isFlipping) {
     flipTime += 1 / 60;
@@ -661,6 +663,7 @@ function animate() {
       mushroom.rotation.x = 0;
     }
   }
+
   // Bouncing logic
   let onGround = false;
   if (isBouncing && Math.abs(mushroom.position.y - playerGroundHeight) < 0.01) {
@@ -668,23 +671,30 @@ function animate() {
       (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost) *
       mushroom.position.y *
       0.6;
-    triggerJiggle(mushroom);
     onGround = false;
   }
   velocity += gravity;
   mushroom.position.y += velocity;
+
   // Collision with ground
   if (mushroom.position.y < playerGroundHeight) {
     mushroom.position.y = playerGroundHeight;
     velocity = 0;
     onGround = true;
-    triggerJiggle(mushroom); // Trigger jiggle only on landing
+    if (!isOnGround) {
+      triggerJiggle(mushroom); // Trigger jiggle only on landing
+      isOnGround = true; // Set the flag to indicate the mushroom is on the ground
+    }
+  } else {
+    isOnGround = false; // Reset the flag when the mushroom is in the air
   }
+
   // Collision with objects
   if (checkCollisions(mushroom)) {
     velocity = Math.min(velocity, 0);
     onGround = true;
   }
+
   // Check for crushing world mushrooms
   mushroom.velocity = velocity;
   checkMushroomCrush(mushroom);

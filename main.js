@@ -88,6 +88,7 @@ async function init() {
   const [pcx, pcz] = getChunkCoords(0, 0);
   const totalChunks = 9;
   let loaded = 0;
+  // Build chunks BEFORE raycasting and player creation
   for (let dx = -1; dx <= 1; dx++) {
     for (let dz = -1; dz <= 1; dz++) {
       await new Promise((resolve) => {
@@ -102,7 +103,7 @@ async function init() {
   }
   hideLoadingBar();
 
-  // Use raycasting to find the terrain height at the player's start position
+  // Now create the player after terrain is ready
   const startX = 0;
   const startZ = 0;
   const raycaster = new THREE.Raycaster();

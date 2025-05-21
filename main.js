@@ -278,14 +278,15 @@ function onKeyUp(e) {
   keys[e.code] = false;
   if (e.code === "Space") {
     isBouncing = false;
-    if (Math.abs(mushroom.position.y - 0.5) < 0.01) {
+    // Update jump logic to ensure consistent jump height
+    if (Math.abs(mushroom.position.y - playerGroundHeight) < 0.01) {
       // Calculate jump power
       let charge = Math.min(jumpCharge, maxJumpCharge);
       let jumpPower =
         minJump +
         (charge / maxJumpCharge) *
           (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost);
-      velocity = jumpPower * mushroom.position.y * 0.6;
+      velocity = jumpPower; // Remove dependency on mushroom's position
       triggerJiggle(mushroom);
       if (charge >= flipThreshold) {
         isFlipping = true;

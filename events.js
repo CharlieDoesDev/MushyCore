@@ -79,27 +79,27 @@ export function setupEventListeners(
 }
 
 // Move event handling functions here
-export function onKeyDown(e) {
+function onKeyDown(e) {
   // ...existing code from main.js...
 }
 
-export function onKeyUp(e) {
+function onKeyUp(e) {
   // ...existing code from main.js...
 }
 
-export function onMouseDown(e) {
+function onMouseDown(e) {
   // ...existing code from main.js...
 }
 
-export function onMouseMove(e) {
+function onMouseMove(e) {
   // ...existing code from main.js...
 }
 
-export function onMouseUp() {
+function onMouseUp() {
   // ...existing code from main.js...
 }
 
-export function goFullScreen() {
+function goFullScreen() {
   // ...existing code from main.js...
 }
 

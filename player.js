@@ -1,7 +1,7 @@
 // player.js
 // Handles mushroom player mechanics
 
-export function createMushroom() {
+function createMushroom() {
   const group = new THREE.Group();
   // Cap
   const capGeometry = new THREE.SphereGeometry(

@@ -3,7 +3,7 @@
 
 import * as THREE from "./node_modules/three/build/three.module.js";
 
-export function setupCamera() {
+function setupCamera() {
   const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -14,7 +14,7 @@ export function setupCamera() {
   return camera;
 }
 
-export function updateCamera(camera, mushroom, yaw, pitch) {
+function updateCamera(camera, mushroom, yaw, pitch) {
   const radius = 4;
   const camX = mushroom.position.x + radius * Math.sin(yaw) * Math.cos(pitch);
   const camY = mushroom.position.y + 1.5 + radius * Math.sin(pitch);
@@ -28,7 +28,7 @@ export function updateCamera(camera, mushroom, yaw, pitch) {
 }
 
 // Move camera-related functions here
-export function updateCamera() {
+function updateCamera() {
   // ...existing code from main.js...
 }
 

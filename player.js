@@ -3,6 +3,7 @@
 
 function createMushroom() {
   const group = new THREE.Group();
+  group.userData = {};
   // Cap
   const capGeometry = new THREE.SphereGeometry(
     0.5,

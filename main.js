@@ -270,14 +270,21 @@ const flipThreshold = 1.0; // seconds
 let isFlipping = false;
 let flipTime = 0;
 
+// Add a flag to track if the jump key is already pressed
+let isJumping = false;
+
 function onKeyDown(e) {
   keys[e.code] = true;
-  if (e.code === "Space") isBouncing = true;
+  if (e.code === "Space" && !isJumping) {
+    isBouncing = true;
+    isJumping = true; // Set the flag to prevent repeated jumps
+  }
 }
 function onKeyUp(e) {
   keys[e.code] = false;
   if (e.code === "Space") {
     isBouncing = false;
+    isJumping = false; // Reset the flag when the key is released
     // Update jump logic to ensure consistent jump height
     if (Math.abs(mushroom.position.y - playerGroundHeight) < 0.01) {
       // Calculate jump power
@@ -289,11 +296,8 @@ function onKeyUp(e) {
             (bounceStrength + playerStats.jumpBoost + playerStats.bounceBoost)
       );
       velocity = jumpPower;
-      triggerJiggle(mushroom);
-      if (charge >= flipThreshold) {
-        isFlipping = true;
-        flipTime = 0;
-      }
+      mushroom.scale.set(1, 1.2, 1); // Stretch upward when jumping
+      setTimeout(() => mushroom.scale.set(1, 1, 1), 200); // Reset scale after jump
     }
     jumpCharge = 0;
   }
@@ -673,6 +677,7 @@ function animate() {
     mushroom.position.y = playerGroundHeight;
     velocity = 0;
     onGround = true;
+    triggerJiggle(mushroom); // Trigger jiggle only on landing
   }
   // Collision with objects
   if (checkCollisions(mushroom)) {

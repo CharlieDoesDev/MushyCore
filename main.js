@@ -97,7 +97,11 @@ function init() {
 window.gravity = gravity;
 window.bounceStrength = bounceStrength;
 window.triggerJiggle = triggerJiggle;
-window.checkCollisions = checkCollisions;
+window.checkCollisions =
+  window.checkCollisions ||
+  function () {
+    return false;
+  };
 window.MUSHROOM_TYPES = window.MUSHROOM_TYPES || [];
 
 function animate() {

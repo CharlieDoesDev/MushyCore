@@ -32,8 +32,34 @@ function addFog() {
   scene.fog = new THREE.FogExp2(0x222233, 0.1); // Less dense fog to see trees better
 }
 
+function showLoadingBar(progress) {
+  let bar = document.getElementById("loading-bar");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "loading-bar";
+    bar.style.position = "absolute";
+    bar.style.top = "50%";
+    bar.style.left = "50%";
+    bar.style.transform = "translate(-50%, -50%)";
+    bar.style.width = "300px";
+    bar.style.height = "24px";
+    bar.style.background = "#222";
+    bar.style.border = "2px solid #fff";
+    bar.style.zIndex = 1000;
+    bar.innerHTML =
+      '<div id="loading-bar-inner" style="height:100%;width:0;background:#4caf50;"></div>';
+    document.body.appendChild(bar);
+  }
+  const inner = document.getElementById("loading-bar-inner");
+  if (inner) inner.style.width = Math.floor(progress * 100) + "%";
+}
+function hideLoadingBar() {
+  const bar = document.getElementById("loading-bar");
+  if (bar) bar.remove();
+}
+
 // Initialize the scene
-function init() {
+async function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x222233);
 
@@ -58,10 +84,27 @@ function init() {
   // Add particles
   addParticles(scene);
 
-  // Create the player
+  // Generate terrain chunks asynchronously with loading bar
+  const [pcx, pcz] = getChunkCoords(0, 0);
+  const totalChunks = 9;
+  let loaded = 0;
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          spawnChunk(pcx + dx, pcz + dz, scene, colliders, worldMushrooms);
+          loaded++;
+          showLoadingBar(loaded / totalChunks);
+          resolve();
+        }, 0);
+      });
+    }
+  }
+  hideLoadingBar();
+
+  // Use raycasting to find the terrain height at the player's start position
   const startX = 0;
   const startZ = 0;
-  // Use raycasting to find the terrain height at the player's start position
   const raycaster = new THREE.Raycaster();
   raycaster.set(
     new THREE.Vector3(startX, 100, startZ),
@@ -83,14 +126,6 @@ function init() {
   cameraPivot.add(camera);
   camera.position.set(0, 1.5, 4);
   camera.lookAt(cameraPivot.position);
-
-  // Initialize a few chunks around the player
-  const [pcx, pcz] = getChunkCoords(0, 0);
-  for (let dx = -1; dx <= 1; dx++) {
-    for (let dz = -1; dz <= 1; dz++) {
-      spawnChunk(pcx + dx, pcz + dz, scene, colliders, worldMushrooms);
-    }
-  }
 
   // Event listeners
   window.addEventListener("resize", () => {

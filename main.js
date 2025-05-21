@@ -1,6 +1,11 @@
 // main.js
 // Use global THREE from CDN
-let scene, camera, renderer, mushroom, velocity = 0, isBouncing = false;
+let scene,
+  camera,
+  renderer,
+  mushroom,
+  velocity = 0,
+  isBouncing = false;
 let direction = new THREE.Vector3();
 let keys = {};
 let cameraPivot, cameraTarget;
@@ -58,7 +63,15 @@ function animateParticles() {
 function createMushroom() {
   const group = new THREE.Group();
   // Cap
-  const capGeometry = new THREE.SphereGeometry(0.5, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.2);
+  const capGeometry = new THREE.SphereGeometry(
+    0.5,
+    32,
+    32,
+    0,
+    Math.PI * 2,
+    0,
+    Math.PI / 1.2
+  );
   const capMaterial = new THREE.MeshStandardMaterial({ color: 0xd72660 });
   const cap = new THREE.Mesh(capGeometry, capMaterial);
   cap.position.y = 0.62;
@@ -137,21 +150,32 @@ function checkCollisions(mesh) {
 
 function jiggleMushroom(mushroom, delta) {
   mushroom.userData.jiggleTime += delta;
-  let scaleY = 1 + Math.sin(mushroom.userData.jiggleTime * 16) * mushroom.userData.jiggleAmount;
+  let scaleY =
+    1 +
+    Math.sin(mushroom.userData.jiggleTime * 16) *
+      mushroom.userData.jiggleAmount;
   let scaleXZ = 1 - (scaleY - 1) * 0.5;
   mushroom.scale.set(scaleXZ, scaleY, scaleXZ);
   mushroom.userData.jiggleAmount *= 0.92;
 }
 
 function triggerJiggle(mushroom, amount = 0.18) {
-  mushroom.userData.jiggleAmount = Math.max(mushroom.userData.jiggleAmount, amount);
+  mushroom.userData.jiggleAmount = Math.max(
+    mushroom.userData.jiggleAmount,
+    amount
+  );
 }
 
 function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x222233);
 
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  );
   camera.position.set(0, 2, 5);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -190,13 +214,13 @@ function init() {
   addBetterLighting();
   addParticles();
 
-  window.addEventListener('resize', onWindowResize);
-  document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('keyup', onKeyUp);
-  document.addEventListener('mousedown', onMouseDown);
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
-  document.addEventListener('dblclick', goFullScreen);
+  window.addEventListener("resize", onWindowResize);
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
+  document.addEventListener("mousedown", onMouseDown);
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
+  document.addEventListener("dblclick", goFullScreen);
 }
 
 // Display version in UI
@@ -341,7 +365,7 @@ function animate() {
   }
   updateMushroomMovement();
   updateCamera();
-  jiggleMushroom(mushroom, 1/60);
+  jiggleMushroom(mushroom, 1 / 60);
   animateParticles();
   renderer.render(scene, camera);
 }

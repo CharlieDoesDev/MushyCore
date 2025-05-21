@@ -1,0 +1,16 @@
+{
+  "name": "mushy-bounce",
+  "version": "1.0.0",
+  "description": "A Three.js app where a mushroom bounces around by holding space bar.",
+  "main": "main.js",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {
+    "three": "^0.158.0"
+  },
+  "devDependencies": {},
+  "keywords": ["three.js", "mushroom", "game", "bounce"],
+  "author": "",
+  "license": "MIT"
+}

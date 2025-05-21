@@ -1,46 +1,13 @@
 // main.js
 // Use global THREE from CDN
-let scene,
-  camera,
-  renderer,
-  mushroom,
-  velocity = 0,
-  isBouncing = false;
+let scene, camera, renderer, mushroom, velocity = 0, isBouncing = false;
 let direction = new THREE.Vector3();
 let keys = {};
 let cameraPivot, cameraTarget;
 const gravity = -0.02;
 const bounceStrength = 0.6;
 const moveSpeed = 0.07;
-const turnSpeed = 0.03;
-
-// Use MushroomEntity for the player
-let mushroomEntity;
-
-function createMushroom() {
-  const group = new THREE.Group();
-  // Cap
-  const capGeometry = new THREE.SphereGeometry(
-    0.5,
-    32,
-    32,
-    0,
-    Math.PI * 2,
-    0,
-    Math.PI / 1.2
-  );
-  const capMaterial = new THREE.MeshStandardMaterial({ color: 0xd72660 });
-  const cap = new THREE.Mesh(capGeometry, capMaterial);
-  cap.position.y = 0.5;
-  group.add(cap);
-  // Stem
-  const stemGeometry = new THREE.CylinderGeometry(0.18, 0.25, 0.6, 24);
-  const stemMaterial = new THREE.MeshStandardMaterial({ color: 0xf7e8a4 });
-  const stem = new THREE.Mesh(stemGeometry, stemMaterial);
-  stem.position.y = 0.2;
-  group.add(stem);
-  return group;
-}
+const colliders = [];
 
 // Particle system for ambiance
 let particles;
@@ -88,16 +55,104 @@ function animateParticles() {
   positions.needsUpdate = true;
 }
 
+function createMushroom() {
+  const group = new THREE.Group();
+  // Cap
+  const capGeometry = new THREE.SphereGeometry(
+    0.5,
+    32,
+    32,
+    0,
+    Math.PI * 2,
+    0,
+    Math.PI / 1.2
+  );
+  const capMaterial = new THREE.MeshStandardMaterial({ color: 0xd72660 });
+  const cap = new THREE.Mesh(capGeometry, capMaterial);
+  cap.position.y = 0.5;
+  group.add(cap);
+  // Stem
+  const stemGeometry = new THREE.CylinderGeometry(0.18, 0.25, 0.6, 24);
+  const stemMaterial = new THREE.MeshStandardMaterial({ color: 0xf7e8a4 });
+  const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+  stem.position.y = 0.2;
+  group.add(stem);
+  // For jiggle
+  group.userData.jiggleTime = 0;
+  group.userData.jiggleAmount = 0;
+  return group;
+}
+
+function createWorld() {
+  // Add some obstacles and scenery
+  for (let i = 0; i < 10; i++) {
+    const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x8ecae6 });
+    const box = new THREE.Mesh(geo, mat);
+    box.position.set(
+      (Math.random() - 0.5) * 12,
+      0.35,
+      (Math.random() - 0.5) * 12
+    );
+    scene.add(box);
+    colliders.push(box);
+  }
+  // Add some trees
+  for (let i = 0; i < 6; i++) {
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.18, 1, 12),
+      new THREE.MeshStandardMaterial({ color: 0x8d5524 })
+    );
+    trunk.position.set(
+      (Math.random() - 0.5) * 14,
+      0.5,
+      (Math.random() - 0.5) * 14
+    );
+    scene.add(trunk);
+    const leaves = new THREE.Mesh(
+      new THREE.SphereGeometry(0.6, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0x388e3c })
+    );
+    leaves.position.copy(trunk.position);
+    leaves.position.y += 0.7;
+    scene.add(leaves);
+  }
+}
+
+function checkCollisions(mesh) {
+  const pos = mesh.position;
+  let collided = false;
+  for (const c of colliders) {
+    if (c === mesh) continue;
+    const b1 = new THREE.Box3().setFromObject(mesh);
+    const b2 = new THREE.Box3().setFromObject(c);
+    if (b1.intersectsBox(b2)) {
+      collided = true;
+      // Push out of collision (simple)
+      const dir = pos.clone().sub(c.position).setY(0).normalize();
+      pos.add(dir.multiplyScalar(0.12));
+    }
+  }
+  return collided;
+}
+
+function jiggleMushroom(mushroom, delta) {
+  mushroom.userData.jiggleTime += delta;
+  let scaleY = 1 + Math.sin(mushroom.userData.jiggleTime * 16) * mushroom.userData.jiggleAmount;
+  let scaleXZ = 1 - (scaleY - 1) * 0.5;
+  mushroom.scale.set(scaleXZ, scaleY, scaleXZ);
+  mushroom.userData.jiggleAmount *= 0.92;
+}
+
+function triggerJiggle(mushroom, amount = 0.18) {
+  mushroom.userData.jiggleAmount = Math.max(mushroom.userData.jiggleAmount, amount);
+}
+
 function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x222233);
 
-  camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    100
-  );
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 2, 5);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -120,10 +175,9 @@ function init() {
   scene.add(ground);
 
   // Mushroom
-  const mushMesh = createMushroom();
-  mushMesh.position.y = 0.5;
-  mushroomEntity = new MushroomEntity(mushMesh);
-  scene.add(mushMesh);
+  mushroom = createMushroom();
+  mushroom.position.y = 0.5;
+  scene.add(mushroom);
 
   // Camera pivot for third person
   cameraPivot = new THREE.Object3D();
@@ -137,13 +191,13 @@ function init() {
   addBetterLighting();
   addParticles();
 
-  window.addEventListener("resize", onWindowResize);
-  document.addEventListener("keydown", onKeyDown);
-  document.addEventListener("keyup", onKeyUp);
-  document.addEventListener("mousedown", onMouseDown);
-  document.addEventListener("mousemove", onMouseMove);
-  document.addEventListener("mouseup", onMouseUp);
-  document.addEventListener("dblclick", goFullScreen);
+  window.addEventListener('resize', onWindowResize);
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
+  document.addEventListener('mousedown', onMouseDown);
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+  document.addEventListener('dblclick', goFullScreen);
 }
 
 // Display version in UI
@@ -246,45 +300,6 @@ function updateCamera() {
   );
 }
 
-let worldEntities = [];
-let colliders = [];
-function createWorld() {
-  // Add some obstacles and scenery
-  for (let i = 0; i < 10; i++) {
-    const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x8ecae6 });
-    const box = new THREE.Mesh(geo, mat);
-    box.position.set(
-      (Math.random() - 0.5) * 12,
-      0.35,
-      (Math.random() - 0.5) * 12
-    );
-    scene.add(box);
-    colliders.push(box);
-    worldEntities.push(new Entity(box));
-  }
-  // Add some trees
-  for (let i = 0; i < 6; i++) {
-    const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.12, 0.18, 1, 12),
-      new THREE.MeshStandardMaterial({ color: 0x8d5524 })
-    );
-    trunk.position.set(
-      (Math.random() - 0.5) * 14,
-      0.5,
-      (Math.random() - 0.5) * 14
-    );
-    scene.add(trunk);
-    const leaves = new THREE.Mesh(
-      new THREE.SphereGeometry(0.6, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0x388e3c })
-    );
-    leaves.position.copy(trunk.position);
-    leaves.position.y += 0.7;
-    scene.add(leaves);
-  }
-}
-
 function addBetterLighting() {
   // Sunlight
   const sun = new THREE.DirectionalLight(0xfff7e0, 1.1);
@@ -303,52 +318,31 @@ function addBetterLighting() {
   }
 }
 
-function checkCollisions(entity) {
-  // Simple AABB collision for all colliders
-  const mesh = entity.mesh;
-  const pos = mesh.position;
-  let collided = false;
-  for (const c of colliders) {
-    if (c === mesh) continue;
-    const b1 = new THREE.Box3().setFromObject(mesh);
-    const b2 = new THREE.Box3().setFromObject(c);
-    if (b1.intersectsBox(b2)) {
-      collided = true;
-      // Push out of collision (simple)
-      const dir = pos.clone().sub(c.position).setY(0).normalize();
-      pos.add(dir.multiplyScalar(0.12));
-    }
-  }
-  return collided;
-}
-
 function animate() {
   requestAnimationFrame(animate);
   // Bouncing logic
-  if (isBouncing && mushroomEntity.onGround) {
-    velocity = Math.max(
-      velocity,
-      bounceStrength * mushroomEntity.mesh.position.y * 0.6
-    );
-    mushroomEntity.triggerJiggle();
-    mushroomEntity.onGround = false;
+  let onGround = false;
+  if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
+    velocity = bounceStrength * mushroom.position.y * 0.6;
+    triggerJiggle(mushroom);
+    onGround = false;
   }
   velocity += gravity;
-  mushroomEntity.mesh.position.y += velocity;
+  mushroom.position.y += velocity;
   // Collision with ground
-  if (mushroomEntity.mesh.position.y < 0.5) {
-    mushroomEntity.mesh.position.y = 0.5;
+  if (mushroom.position.y < 0.5) {
+    mushroom.position.y = 0.5;
     velocity = 0;
-    mushroomEntity.onGround = true;
+    onGround = true;
   }
   // Collision with objects
-  if (checkCollisions(mushroomEntity)) {
+  if (checkCollisions(mushroom)) {
     velocity = Math.min(velocity, 0);
-    mushroomEntity.onGround = true;
+    onGround = true;
   }
   updateMushroomMovement();
   updateCamera();
-  mushroomEntity.update(1 / 60);
+  jiggleMushroom(mushroom, 1/60);
   animateParticles();
   renderer.render(scene, camera);
 }

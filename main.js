@@ -72,26 +72,27 @@ function init() {
   const [pcx, pcz] = getChunkCoords(0, 0);
   for (let dx = -1; dx <= 1; dx++) {
     for (let dz = -1; dz <= 1; dz++) {
-      spawnChunk(pcx + dx, pcz + dz);
+      spawnChunk(pcx + dx, pcz + dz, scene, colliders, worldMushrooms);
     }
   }
 
   // Event listeners
-  window.addEventListener("resize", onWindowResize);
-  window.addEventListener("keydown", onKeyDown);
-  window.addEventListener("keyup", onKeyUp);
-  window.addEventListener("mousedown", onMouseDown);
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
-  window.addEventListener("dblclick", goFullScreen);
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  window.addEventListener("keydown", (e) => onKeyDown(e, keys));
+  window.addEventListener("keyup", (e) => onKeyUp(e, keys));
+  window.addEventListener("mousedown", (e) => onMouseDown(e));
+  window.addEventListener("mousemove", (e) => onMouseMove(e));
+  window.addEventListener("mouseup", () => onMouseUp());
+  window.addEventListener("dblclick", () => goFullScreen());
 }
-
-// Removed duplicate definition of checkMushroomCrush
-// The function is already imported from player.js
 
 function animate() {
   requestAnimationFrame(animate);
-  updateChunks();
+  updateChunks(mushroom, scene, colliders, worldMushrooms);
 
   // Jump charge logic
   if (isBouncing && Math.abs(mushroom.position.y - 0.5) < 0.01) {
@@ -134,18 +135,24 @@ function animate() {
   }
 
   // Collision with objects
-  if (checkCollisions(mushroom)) {
+  if (checkCollisions(mushroom, colliders)) {
     velocity = Math.min(velocity, 0);
     onGround = true;
   }
 
   // Check for crushing world mushrooms
   mushroom.velocity = velocity;
-  checkMushroomCrush(mushroom);
-  updateMushroomMovement();
+  checkMushroomCrush(mushroom, worldMushrooms, playerStats);
+  updateMushroomMovement(
+    mushroom,
+    keys,
+    velocity,
+    playerGroundHeight,
+    moveSpeed
+  );
   updateCamera(camera, mushroom, yaw, pitch);
   jiggleMushroom(mushroom, 1 / 60);
-  animateParticles();
+  animateParticles(scene);
   renderer.render(scene, camera);
 }
 

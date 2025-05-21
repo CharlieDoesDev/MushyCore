@@ -134,7 +134,12 @@ async function init() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
-  window.addEventListener("keydown", (e) => onKeyDown(e, keys));
+  window.addEventListener("keydown", (e) => {
+    onKeyDown(e, keys);
+    if (e.code === "Space") {
+      ResetPlayerPosition();
+    }
+  });
   window.addEventListener("keyup", (e) => onKeyUp(e, keys));
   window.addEventListener("mousedown", (e) => onMouseDown(e));
   window.addEventListener("mousemove", (e) => onMouseMove(e));
@@ -177,6 +182,25 @@ function animate() {
   animateParticles(scene);
   renderer.render(scene, camera);
 }
+
+// Find a valid position on the terrain using raycasting
+function ResetPlayerPosition() {
+  const startX = 0;
+  const startZ = 0;
+  const raycaster = new THREE.Raycaster();
+  raycaster.set(
+    new THREE.Vector3(startX, 100, startZ),
+    new THREE.Vector3(0, -1, 0)
+  );
+  const intersects = raycaster.intersectObjects(colliders, false);
+  let startY = 10;
+  if (intersects.length > 0) {
+    startY = intersects[0].point.y + 1; // Place player 1 unit above terrain
+  }
+  mushroom.position.set(startX, startY, startZ);
+  mushroom.userData.velocity = 0;
+}
+window.ResetPlayerPosition = ResetPlayerPosition;
 
 init();
 animate();

@@ -1,7 +1,7 @@
 // events.js
 // Handles input and event listeners
 
-let keys = {};
+window.keys = window.keys || {};
 let isJumping = false;
 let isMouseDown = false;
 let lastMouseX = 0;

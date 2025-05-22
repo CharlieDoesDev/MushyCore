@@ -5,9 +5,7 @@ let scene,
   renderer,
   mushroom,
   velocity = 0;
-let direction = new THREE.Vector3();
-let keys = {};
-let cameraPivot, cameraTarget;
+window.direction = window.direction || new THREE.Vector3();
 const gravity = -0.02;
 const bounceStrength = 1.2; // Increased jump height
 const moveSpeed = 0.07;
@@ -15,10 +13,10 @@ const colliders = [];
 const MIN_TREE_SPACING = 25; // Minimum distance squared between trees
 
 // Global ground height for player
-let playerGroundHeight = 0.5;
+window.playerGroundHeight = window.playerGroundHeight || 0.5;
 
 // Initialize the world mushrooms array
-let worldMushrooms = [];
+window.worldMushrooms = window.worldMushrooms || [];
 
 // Display version in UI
 const VERSION = "1.0.5";
@@ -123,6 +121,8 @@ async function init() {
   scene.add(mushroom);
 
   // Camera pivot for third person
+  window.cameraPivot = window.cameraPivot || undefined;
+  window.cameraTarget = window.cameraTarget || undefined;
   cameraPivot = new THREE.Object3D();
   cameraTarget = new THREE.Object3D();
   scene.add(cameraPivot);
@@ -200,8 +200,11 @@ window.checkCollisions =
   };
 window.MUSHROOM_TYPES = window.MUSHROOM_TYPES || [];
 
-// Player stats for power-ups and upgrades
-let playerStats = { jumpBoost: 0, speedBoost: 0, bounceBoost: 0 };
+window.playerStats = window.playerStats || {
+  jumpBoost: 0,
+  speedBoost: 0,
+  bounceBoost: 0,
+};
 
 function animate() {
   requestAnimationFrame(animate);

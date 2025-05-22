@@ -189,17 +189,16 @@ function animate() {
 function ResetPlayerPosition() {
   const startX = 0;
   const startZ = 0;
-  const raycaster = new THREE.Raycaster();
-  raycaster.set(
-    new THREE.Vector3(startX, 100, startZ),
-    new THREE.Vector3(0, -1, 0)
-  );
+  // Use a very high Y to ensure you always hit the topmost terrain
+  const rayOrigin = new THREE.Vector3(startX, 1000, startZ);
+  const rayDirection = new THREE.Vector3(0, -1, 0);
+  const raycaster = new THREE.Raycaster(rayOrigin, rayDirection);
   const intersects = raycaster.intersectObjects(colliders, false);
   let startY = 10;
   if (intersects.length > 0) {
     // Find the intersection with the highest y value
     let highest = intersects.reduce((a, b) => (a.point.y > b.point.y ? a : b));
-    startY = highest.point.y + 1; // Place player 1 unit above terrain
+    startY = highest.point.y + 10; // Place player 10 units above terrain
   }
   mushroom.position.set(startX, startY, startZ);
   mushroom.userData.velocity = 0;

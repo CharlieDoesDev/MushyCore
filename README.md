@@ -21,6 +21,6 @@ A simple Three.js game where you play as a mushroom that bounces and hops around
 
 ## How to Run
 
-Just open `https://charliedoesdev.github.io/MushyCore/.html` in your browser
+Just open https://charliedoesdev.github.io/MushyCore in your browser
 
 Enjoy exploring the world as a bouncy mushroom!

@@ -175,6 +175,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const x = parseFloat(document.getElementById("player-x").value);
       const y = parseFloat(document.getElementById("player-y").value);
       const z = parseFloat(document.getElementById("player-z").value);
+      console.log("Set Player Position clicked", { x, y, z, mushroom: window.mushroom });
       if (window.mushroom) {
         window.mushroom.position.set(x, y, z);
         window.mushroom.userData.velocity = 0;

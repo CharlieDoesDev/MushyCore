@@ -149,6 +149,40 @@ async function init() {
   window.addEventListener("dblclick", () => goFullScreen());
 }
 
+// Add input fields and button for manual player position
+window.addEventListener("DOMContentLoaded", () => {
+  // Add manual position controls
+  let controls = document.getElementById("player-position-controls");
+  if (!controls) {
+    controls = document.createElement("div");
+    controls.id = "player-position-controls";
+    controls.style.position = "absolute";
+    controls.style.top = "10px";
+    controls.style.left = "10px";
+    controls.style.background = "rgba(34,34,51,0.9)";
+    controls.style.padding = "10px";
+    controls.style.borderRadius = "8px";
+    controls.style.zIndex = 1001;
+    controls.style.color = "#fff";
+    controls.innerHTML = `
+      <label>X: <input id="player-x" type="number" value="0" style="width:60px;"></label>
+      <label>Y: <input id="player-y" type="number" value="10" style="width:60px;"></label>
+      <label>Z: <input id="player-z" type="number" value="0" style="width:60px;"></label>
+      <button id="set-player-position">Set Player Position</button>
+    `;
+    document.body.appendChild(controls);
+    document.getElementById("set-player-position").onclick = function () {
+      const x = parseFloat(document.getElementById("player-x").value);
+      const y = parseFloat(document.getElementById("player-y").value);
+      const z = parseFloat(document.getElementById("player-z").value);
+      if (window.mushroom) {
+        window.mushroom.position.set(x, y, z);
+        window.mushroom.userData.velocity = 0;
+      }
+    };
+  }
+});
+
 // Make sure these are available globally for player.js
 window.gravity = gravity;
 window.bounceStrength = bounceStrength;

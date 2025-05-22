@@ -114,7 +114,9 @@ async function init() {
   const intersects = raycaster.intersectObjects(colliders, false);
   let startY = 10;
   if (intersects.length > 0) {
-    startY = intersects[0].point.y + 1; // Place player 1 unit above terrain
+    // Find the intersection with the highest y value
+    let highest = intersects.reduce((a, b) => (a.point.y > b.point.y ? a : b));
+    startY = highest.point.y + 1; // Place player 1 unit above terrain
   }
   mushroom = createMushroom();
   mushroom.position.set(startX, startY, startZ);
@@ -195,7 +197,9 @@ function ResetPlayerPosition() {
   const intersects = raycaster.intersectObjects(colliders, false);
   let startY = 10;
   if (intersects.length > 0) {
-    startY = intersects[0].point.y + 1; // Place player 1 unit above terrain
+    // Find the intersection with the highest y value
+    let highest = intersects.reduce((a, b) => (a.point.y > b.point.y ? a : b));
+    startY = highest.point.y + 1; // Place player 1 unit above terrain
   }
   mushroom.position.set(startX, startY, startZ);
   mushroom.userData.velocity = 0;

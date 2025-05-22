@@ -165,6 +165,7 @@ let playerStats = { jumpBoost: 0, speedBoost: 0, bounceBoost: 0 };
 
 function animate() {
   requestAnimationFrame(animate);
+  if (!mushroom) return; // Prevent errors if mushroom is not yet created
   updateChunks(mushroom, scene, colliders, worldMushrooms);
 
   // Flipping animation is now handled in updateMushroomMovement (player.js)

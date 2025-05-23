@@ -19,6 +19,24 @@ function getChunkCoords(x, z) {
   return [Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)];
 }
 
+// --- PHYSICS ENGINE INTEGRATION ---
+if (typeof CANNON !== 'undefined') {
+  if (!window.physicsWorld) {
+    window.physicsWorld = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+    window.physicsWorld.broadphase = new CANNON.NaiveBroadphase();
+    window.physicsWorld.solver.iterations = 10;
+  }
+}
+
+function createTerrainPhysicsBlock(x, y, z, size = 1) {
+  if (!window.physicsWorld || typeof CANNON === 'undefined') return;
+  const halfExtents = new CANNON.Vec3(size / 2, 0.5, size / 2);
+  const shape = new CANNON.Box(halfExtents);
+  const body = new CANNON.Body({ mass: 0, shape });
+  body.position.set(x, y, z);
+  window.physicsWorld.addBody(body);
+}
+
 function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   const objects = [];
   const mushrooms = [];
@@ -27,7 +45,7 @@ function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   // Calculate base height for this chunk
   const baseHeight = getTerrainHeight(cx * CHUNK_SIZE, cz * CHUNK_SIZE);
 
-  // Create terrain blocks
+  // Create terrain block (single block per chunk, flat top)
   const terrainGeo = new THREE.BoxGeometry(CHUNK_SIZE, 1, CHUNK_SIZE);
   const terrainMat = new THREE.MeshStandardMaterial({ color: 0x4caf50 });
   const block = new THREE.Mesh(terrainGeo, terrainMat);
@@ -40,6 +58,14 @@ function spawnChunk(cx, cz, scene, colliders, worldMushrooms) {
   scene.add(block);
   terrain.push(block);
   colliders.push(block);
+
+  // Add physics for this terrain block
+  createTerrainPhysicsBlock(
+    block.position.x,
+    block.position.y + 0.5, // Center of block
+    block.position.z,
+    CHUNK_SIZE
+  );
 
   // Trees - spawn at the correct height
   const treePositions = [];

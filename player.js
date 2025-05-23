@@ -42,7 +42,20 @@ function spawnPlayerAt(x, z) {
     throw new Error("getTerrainHeight is not available");
   }
   const yOffset = 1; // Mushroom sits 1 unit above terrain
-  const y = window.getTerrainHeight(x, z) + yOffset;
+  // Find the highest terrain physics block under (x, z)
+  let y = window.getTerrainHeight(x, z) + yOffset;
+  if (window.physicsWorld && typeof CANNON !== 'undefined') {
+    // Raycast down from above to find the physics surface
+    const ray = new CANNON.Ray(
+      new CANNON.Vec3(x, 100, z),
+      new CANNON.Vec3(0, -1, 0)
+    );
+    const result = new CANNON.RaycastResult();
+    ray.intersectWorld(window.physicsWorld, { collisionFilterMask: -1, skipBackfaces: true }, result);
+    if (result.hasHit) {
+      y = result.hitPointWorld.y + yOffset;
+    }
+  }
   if (window.mushroom) {
     window.mushroom.position.set(x, y, z);
     window.mushroom.userData.velocity = 0;

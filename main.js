@@ -57,30 +57,38 @@ function hideLoadingBar() {
 }
 
 // --- PHYSICS ENGINE SETUP ---
-let physicsWorld;
-let playerBody;
-let terrainBodies = [];
+// Use global CANNON from UMD build
+var physicsWorld = null;
+var playerBody = null;
+var terrainBodies = [];
 
 function setupPhysicsWorld() {
-  physicsWorld = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+  if (typeof CANNON === 'undefined') {
+    console.warn('CANNON is not loaded!');
+    return;
+  }
+  physicsWorld = new CANNON.World();
+  physicsWorld.gravity.set(0, -9.82, 0);
   physicsWorld.broadphase = new CANNON.NaiveBroadphase();
   physicsWorld.solver.iterations = 10;
 }
 
 function createPlayerBody(x, y, z) {
-  // Use a sphere for the mushroom player
-  const radius = 0.5;
-  const shape = new CANNON.Sphere(radius);
-  playerBody = new CANNON.Body({ mass: 1, shape });
+  if (!physicsWorld || typeof CANNON === 'undefined') return;
+  var radius = 0.5;
+  var shape = new CANNON.Sphere(radius);
+  playerBody = new CANNON.Body({ mass: 1 });
+  playerBody.addShape(shape);
   playerBody.position.set(x, y, z);
   physicsWorld.addBody(playerBody);
 }
 
 function createTerrainBody(x, y, z) {
-  // Use a box for each terrain block
-  const halfExtents = new CANNON.Vec3(0.5, 0.5, 0.5);
-  const shape = new CANNON.Box(halfExtents);
-  const body = new CANNON.Body({ mass: 0, shape });
+  if (!physicsWorld || typeof CANNON === 'undefined') return;
+  var halfExtents = new CANNON.Vec3(0.5, 0.5, 0.5);
+  var shape = new CANNON.Box(halfExtents);
+  var body = new CANNON.Body({ mass: 0 });
+  body.addShape(shape);
   body.position.set(x, y, z);
   physicsWorld.addBody(body);
   terrainBodies.push(body);
@@ -234,7 +242,7 @@ window.playerStats = window.playerStats || {
 
 function animate() {
   requestAnimationFrame(animate);
-  if (!window.mushroom || !playerBody) {
+  if (!window.mushroom || !physicsWorld || !playerBody) {
     return;
   }
   // Step the physics world

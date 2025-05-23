@@ -234,5 +234,3 @@ window.checkMushroomCrush = checkMushroomCrush;
 window.jiggleMushroom = jiggleMushroom;
 window.triggerJiggle = triggerJiggle;
 window.spawnPlayerAt = spawnPlayerAt;
-
-<script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>

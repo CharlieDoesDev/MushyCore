@@ -78,7 +78,6 @@ function updateChunks(mushroom, scene, colliders, worldMushrooms) {
   }
 }
 
-// Move chunk management functions here
 function chunkKey(cx, cz) {
   return `${cx}_${cz}`;
 }

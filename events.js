@@ -78,7 +78,6 @@ function setupEventListeners(
   });
 }
 
-// Move event handling functions here
 function onKeyDown(e) {
   keys[e.code] = true;
 }

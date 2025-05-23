@@ -116,9 +116,9 @@ async function init() {
     let highest = intersects.reduce((a, b) => (a.point.y > b.point.y ? a : b));
     startY = highest.point.y + 1; // Place player 1 unit above terrain
   }
-  mushroom = createMushroom();
-  mushroom.position.set(startX, startY, startZ);
-  scene.add(mushroom);
+  window.mushroom = createMushroom();
+  window.mushroom.position.set(startX, startY, startZ);
+  scene.add(window.mushroom);
 
   // Camera pivot for third person
   window.cameraPivot = window.cameraPivot || undefined;
@@ -136,17 +136,6 @@ async function init() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
-  window.addEventListener("keydown", (e) => {
-    onKeyDown(e, keys);
-    if (e.code === "Space") {
-      ResetPlayerPosition();
-    }
-  });
-  window.addEventListener("keyup", (e) => onKeyUp(e, keys));
-  window.addEventListener("mousedown", (e) => onMouseDown(e));
-  window.addEventListener("mousemove", (e) => onMouseMove(e));
-  window.addEventListener("mouseup", () => onMouseUp());
-  window.addEventListener("dblclick", () => goFullScreen());
 }
 
 // Add input fields and button for manual player position
@@ -208,15 +197,13 @@ window.playerStats = window.playerStats || {
 
 function animate() {
   requestAnimationFrame(animate);
-  if (!mushroom) {
+  if (!window.mushroom) {
     console.warn("Mushroom not created yet");
-    return; // Prevent errors if mushroom is not yet created
+    return;
   }
-  updateChunks(mushroom, scene, colliders, worldMushrooms);
-
-  // Flipping animation is now handled in updateMushroomMovement (player.js)
+  updateChunks(window.mushroom, scene, colliders, worldMushrooms);
   updateMushroomMovement(
-    mushroom,
+    window.mushroom,
     keys,
     velocity,
     playerGroundHeight,
@@ -225,32 +212,43 @@ function animate() {
     worldMushrooms,
     playerStats
   );
-
-  updateCamera(camera, mushroom, yaw, pitch);
-  jiggleMushroom(mushroom, 1 / 60);
+  jiggleMushroom(window.mushroom, 1 / 60);
   animateParticles(scene);
   renderer.render(scene, camera);
 }
 
 // Find a valid position on the terrain using raycasting
 function ResetPlayerPosition() {
-  const startX = 0;
-  const startZ = 0;
+  const startX = window.mushroom ? window.mushroom.position.x : 0;
+  const startZ = window.mushroom ? window.mushroom.position.z : 0;
   // Use a very high Y to ensure you always hit the topmost terrain
   const rayOrigin = new THREE.Vector3(startX, 1000, startZ);
   const rayDirection = new THREE.Vector3(0, -1, 0);
   const raycaster = new THREE.Raycaster(rayOrigin, rayDirection);
   const intersects = raycaster.intersectObjects(colliders, false);
-  let startY = 10;
+  let startY;
   if (intersects.length > 0) {
     // Find the intersection with the highest y value
     let highest = intersects.reduce((a, b) => (a.point.y > b.point.y ? a : b));
-    startY = highest.point.y + 10; // Place player 10 units above terrain
+    startY = highest.point.y + 1; // Place player 1 unit above terrain
+  } else {
+    // If no terrain found, keep current Y or set a safe default
+    startY = window.mushroom ? window.mushroom.position.y : 10;
   }
-  mushroom.position.set(startX, startY, startZ);
-  mushroom.userData.velocity = 0;
+  window.mushroom.position.set(startX, startY, startZ);
+  window.mushroom.userData.velocity = 0;
 }
 window.ResetPlayerPosition = ResetPlayerPosition;
+
+// Attach to window for global access
+window.scene = scene;
+window.camera = camera;
+window.renderer = renderer;
+window.colliders = colliders;
+window.gravity = gravity;
+window.bounceStrength = bounceStrength;
+window.moveSpeed = moveSpeed;
+window.MIN_TREE_SPACING = MIN_TREE_SPACING;
 
 init();
 animate();

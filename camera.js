@@ -26,10 +26,5 @@ function updateCamera(camera, mushroom, yaw, pitch) {
   );
 }
 
-// Move camera-related functions here
-function updateCamera() {
-  // ...existing code from main.js...
-}
-
 // Expose functions globally
 window.updateCamera = updateCamera;

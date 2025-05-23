@@ -56,6 +56,36 @@ function hideLoadingBar() {
   if (bar) bar.remove();
 }
 
+// --- PHYSICS ENGINE SETUP ---
+let physicsWorld;
+let playerBody;
+let terrainBodies = [];
+
+function setupPhysicsWorld() {
+  physicsWorld = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+  physicsWorld.broadphase = new CANNON.NaiveBroadphase();
+  physicsWorld.solver.iterations = 10;
+}
+
+function createPlayerBody(x, y, z) {
+  // Use a sphere for the mushroom player
+  const radius = 0.5;
+  const shape = new CANNON.Sphere(radius);
+  playerBody = new CANNON.Body({ mass: 1, shape });
+  playerBody.position.set(x, y, z);
+  physicsWorld.addBody(playerBody);
+}
+
+function createTerrainBody(x, y, z) {
+  // Use a box for each terrain block
+  const halfExtents = new CANNON.Vec3(0.5, 0.5, 0.5);
+  const shape = new CANNON.Box(halfExtents);
+  const body = new CANNON.Body({ mass: 0, shape });
+  body.position.set(x, y, z);
+  physicsWorld.addBody(body);
+  terrainBodies.push(body);
+}
+
 // Initialize the scene
 async function init() {
   scene = new THREE.Scene();
@@ -104,21 +134,20 @@ async function init() {
   // Now create the player after terrain is ready
   const startX = 0;
   const startZ = 0;
-  const raycaster = new THREE.Raycaster();
-  raycaster.set(
-    new THREE.Vector3(startX, 100, startZ),
-    new THREE.Vector3(0, -1, 0)
-  );
-  const intersects = raycaster.intersectObjects(colliders, false);
-  let startY = 10;
-  if (intersects.length > 0) {
-    // Find the intersection with the highest y value
-    let highest = intersects.reduce((a, b) => (a.point.y > b.point.y ? a : b));
-    startY = highest.point.y + 1; // Place player 1 unit above terrain
+  if (typeof window.spawnPlayerAt === "function") {
+    window.spawnPlayerAt(startX, startZ);
+    // Also create the physics body for the player
+    const y = window.getTerrainHeight(startX, startZ) + 1;
+    createPlayerBody(startX, y, startZ);
+  } else {
+    // fallback for legacy
+    const y = (typeof window.getTerrainHeight === "function")
+      ? window.getTerrainHeight(startX, startZ) + 1
+      : 10;
+    window.mushroom = createMushroom();
+    window.mushroom.position.set(startX, y, startZ);
+    scene.add(window.mushroom);
   }
-  window.mushroom = createMushroom();
-  window.mushroom.position.set(startX, startY, startZ);
-  scene.add(window.mushroom);
 
   // Camera pivot for third person
   window.cameraPivot = window.cameraPivot || undefined;
@@ -136,6 +165,21 @@ async function init() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
+
+  // After terrain is generated, create terrain bodies
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      // For each block in the chunk, create a physics body
+      for (let x = 0; x < 16; x++) {
+        for (let z = 0; z < 16; z++) {
+          const wx = (pcx + dx) * 16 + x;
+          const wz = (pcz + dz) * 16 + z;
+          const h = window.getTerrainHeight(wx, wz);
+          createTerrainBody(wx, h, wz);
+        }
+      }
+    }
+  }
 }
 
 // Add input fields and button for manual player position
@@ -162,17 +206,10 @@ window.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(controls);
     document.getElementById("set-player-position").onclick = function () {
       const x = parseFloat(document.getElementById("player-x").value);
-      const y = parseFloat(document.getElementById("player-y").value);
       const z = parseFloat(document.getElementById("player-z").value);
-      console.log("Set Player Position clicked", {
-        x,
-        y,
-        z,
-        mushroom: window.mushroom,
-      });
-      if (window.mushroom) {
-        window.mushroom.position.set(x, y, z);
-        window.mushroom.userData.velocity = 0;
+      if (typeof window.spawnPlayerAt === "function") {
+        window.spawnPlayerAt(x, z);
+        document.getElementById("player-y").value = window.mushroom.position.y;
       }
     };
   }
@@ -197,10 +234,14 @@ window.playerStats = window.playerStats || {
 
 function animate() {
   requestAnimationFrame(animate);
-  if (!window.mushroom) {
-    console.warn("Mushroom not created yet");
+  if (!window.mushroom || !playerBody) {
     return;
   }
+  // Step the physics world
+  physicsWorld.step(1 / 60);
+  // Sync Three.js mesh with Cannon.js body
+  window.mushroom.position.copy(playerBody.position);
+  window.mushroom.quaternion.copy(playerBody.quaternion);
   updateChunks(window.mushroom, scene, colliders, worldMushrooms);
   updateMushroomMovement(
     window.mushroom,
@@ -240,6 +281,14 @@ function ResetPlayerPosition() {
 }
 window.ResetPlayerPosition = ResetPlayerPosition;
 
+// Snap player to terrain utility
+window.setPlayerOnTerrain = function (x, z) {
+  if (!window.mushroom || typeof window.getTerrainHeight !== "function") return;
+  const y = window.getTerrainHeight(x, z) + 1;
+  window.mushroom.position.set(x, y, z);
+  window.mushroom.userData.velocity = 0;
+};
+
 // Attach to window for global access
 window.scene = scene;
 window.camera = camera;
@@ -252,3 +301,17 @@ window.MIN_TREE_SPACING = MIN_TREE_SPACING;
 
 init();
 animate();
+
+// Add this to allow the manual position UI to snap to terrain
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("set-player-position");
+  if (btn) {
+    btn.insertAdjacentHTML('afterend', '<button id="snap-player-terrain">Snap to Terrain</button>');
+    document.getElementById("snap-player-terrain").onclick = function () {
+      const x = parseFloat(document.getElementById("player-x").value);
+      const z = parseFloat(document.getElementById("player-z").value);
+      window.setPlayerOnTerrain(x, z);
+      document.getElementById("player-y").value = window.mushroom.position.y;
+    };
+  }
+});

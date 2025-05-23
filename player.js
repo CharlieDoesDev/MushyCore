@@ -37,6 +37,25 @@ function createMushroom() {
   return group;
 }
 
+function spawnPlayerAt(x, z) {
+  if (typeof window.getTerrainHeight !== "function") {
+    throw new Error("getTerrainHeight is not available");
+  }
+  const yOffset = 1; // Mushroom sits 1 unit above terrain
+  const y = window.getTerrainHeight(x, z) + yOffset;
+  if (window.mushroom) {
+    window.mushroom.position.set(x, y, z);
+    window.mushroom.userData.velocity = 0;
+  } else {
+    window.mushroom = createMushroom();
+    window.mushroom.position.set(x, y, z);
+    if (typeof window.scene !== "undefined") {
+      window.scene.add(window.mushroom);
+    }
+  }
+}
+window.spawnPlayerAt = spawnPlayerAt;
+
 function updateMushroomMovement(
   mushroom,
   keys,
@@ -47,6 +66,12 @@ function updateMushroomMovement(
   worldMushrooms,
   playerStats
 ) {
+  // Always use terrain height for ground collision
+  const groundY =
+    typeof window.getTerrainHeight === "function"
+      ? window.getTerrainHeight(mushroom.position.x, mushroom.position.z)
+      : 0;
+
   // Movement relative to camera/player orientation
   let moveX = 0,
     moveZ = 0;
@@ -84,7 +109,7 @@ function updateMushroomMovement(
   // Jump charge logic
   if (
     keys["Space"] &&
-    Math.abs(mushroom.position.y - playerGroundHeight) < 0.01
+    Math.abs(mushroom.position.y - groundY) < 0.01
   ) {
     mushroom.userData.jumpCharge = Math.min(
       mushroom.userData.jumpCharge + 1 / 60,
@@ -106,7 +131,7 @@ function updateMushroomMovement(
   let onGround = false;
   if (
     keys["Space"] &&
-    Math.abs(mushroom.position.y - playerGroundHeight) < 0.01
+    Math.abs(mushroom.position.y - groundY) < 0.01
   ) {
     mushroom.userData.velocity =
       (window.bounceStrength +
@@ -120,8 +145,8 @@ function updateMushroomMovement(
   mushroom.position.y += mushroom.userData.velocity;
 
   // Collision with ground
-  if (mushroom.position.y < playerGroundHeight) {
-    mushroom.position.y = playerGroundHeight;
+  if (mushroom.position.y < groundY) {
+    mushroom.position.y = groundY;
     mushroom.userData.velocity = 0;
     onGround = true;
     if (!mushroom.userData.isOnGround) {
@@ -195,3 +220,4 @@ window.updateMushroomMovement = updateMushroomMovement;
 window.checkMushroomCrush = checkMushroomCrush;
 window.jiggleMushroom = jiggleMushroom;
 window.triggerJiggle = triggerJiggle;
+window.spawnPlayerAt = spawnPlayerAt;

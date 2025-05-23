@@ -1,19 +1,8 @@
 // collisions.js
 // Handles collision detection and response
+// NOTE: Player/terrain collisions are now handled by cannon-es physics engine.
 
-function checkCollisions(mesh, colliders) {
-  if (!colliders) return false;
-  const meshBox = new THREE.Box3().setFromObject(mesh);
-  for (const collider of colliders) {
-    if (collider === mesh) continue;
-    const colliderBox = new THREE.Box3().setFromObject(collider);
-    if (meshBox.intersectsBox(colliderBox)) {
-      return true;
-    }
-  }
-  return false;
-}
-
+// You may still want to use this for mushroom-to-mushroom or other non-physics collisions
 function checkMushroomCrush(player, worldMushrooms, playerStats) {
   for (const mush of worldMushrooms) {
     if (mush.userData.crushed) continue;
@@ -34,5 +23,4 @@ function checkMushroomCrush(player, worldMushrooms, playerStats) {
   }
 }
 
-window.checkCollisions = checkCollisions;
 window.checkMushroomCrush = checkMushroomCrush;

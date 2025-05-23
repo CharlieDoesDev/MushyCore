@@ -116,6 +116,9 @@ async function init() {
 
   // Add lighting
   addBetterLighting(scene);
+  // Add a strong ambient light for debugging
+  const debugLight = new THREE.AmbientLight(0xffffff, 1.5);
+  scene.add(debugLight);
 
   // Add particles
   addParticles(scene);
@@ -147,6 +150,11 @@ async function init() {
     // Also create the physics body for the player
     const y = window.getTerrainHeight(startX, startZ) + 1;
     createPlayerBody(startX, y, startZ);
+    // Log positions for debugging
+    console.log('Player position:', window.mushroom.position);
+    console.log('Camera position:', camera.position);
+    // Make camera look at player
+    camera.lookAt(window.mushroom.position);
   } else {
     // fallback for legacy
     const y = (typeof window.getTerrainHeight === "function")
@@ -155,6 +163,7 @@ async function init() {
     window.mushroom = createMushroom();
     window.mushroom.position.set(startX, y, startZ);
     scene.add(window.mushroom);
+    camera.lookAt(window.mushroom.position);
   }
 
   // Camera pivot for third person
